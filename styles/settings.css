@@ -1,0 +1,261 @@
+@charset "ISO-8859-1";
+
+.content
+{
+	overflow: hidden;
+}
+
+.content  .AuditLogsParent
+{
+	height: 100%;
+}
+
+.content  .AgnityDialogDiv > .AgnityDialogHeadingDiv
+{
+	float: left;
+	height: 40px;
+}
+
+.content  .AuditLogsParent > .AgnityDialogDetailPageDiv
+{
+	height: 100px;
+}
+
+.content  .AuditLogsParent > .AgnityDialogListingPageDiv
+{
+ 	height: calc(100% - 150px);
+}
+
+.content  .AuditLogsParent > .AgnityDialogListingPageDiv > .AgnityDialogListingPageBodyDiv 
+{
+	height: calc(100% - 40px);
+}
+
+.content  .PasswordPolicyParent > .AgnityDialogListingPageDiv > .AgnityDialogListingPageBodyDiv 
+{
+	height: calc(100% - 40px);
+}
+
+ /* .content .PasswordPolicyParent > .AgnityDialogListingPageDiv
+ {
+	height: auto;
+	width: 200%;
+	margin-left: -1px;
+	border: 1px solid rgb(243, 238, 238); 
+	overflow-y: scroll;
+}  */
+.content  .AuditLogsParent > .AgnityDialogListingPageDiv > .downloadLogs
+{
+	height: 25px;
+	margin-top: 15px;
+}
+
+.content  .UserSettingsParent
+{
+	height: 100%;
+}
+.content  .PasswordPolicyParent
+{
+	height: 100%;
+	overflow: auto;
+}
+
+.content  .AgnityDialogDiv > .AgnityDialogHeadingDiv
+{
+	float: left;
+	height: 40px;
+}
+
+.content  .UserSettingsParent > .AgnityDialogDetailPageDiv
+{ 
+	height: 190px; 
+}
+
+	/* textbox to grid diff */
+.content  .PasswordPolicyParent > .AgnityDialogDetailPageDiv
+{
+	height: 225px;
+} 
+.content  .UserSettingsParent > .AgnityDialogListingPageDiv
+{
+	height: calc(100% - 230px); 
+}
+.content  .PasswordPolicyParent > .AgnityDialogListingPageDiv
+{
+	height: calc(100% - 130px);
+} 
+.content  .UserSettingsParent > .AgnityDialogListingPageDiv > .AgnityDialogListingPageBodyDiv 
+{
+	height: calc(100% - 60px); 
+}
+.content  .PasswordPolicyParent > .AgnityDialogListingPageDiv > .AgnityDialogListingPageBodyDiv 
+{
+	height: calc(100% - 60px);	 
+	
+	overflow-y:scroll; 
+	 height: 341px;
+	/*overflow:auto; */
+}  
+
+.content  #agnity_domain_page
+{
+	height: 100%;
+}
+
+.content  #agnity_domain_page > .AgnityDialogDiv > .AgnityDialogHeadingDiv
+{
+	float: left;
+	height: 40px;
+}
+
+.content  #agnity_domain_page > .AgnityDialogDiv > .AgnityDialogDetailPageDiv
+{
+	height: 165px;
+}
+
+.content  #agnity_domain_page > .AgnityDialogDiv > .AgnityDialogListingPageDiv
+{
+	height: calc(100% - 150px);
+}
+
+.content  #agnity_domain_page > .AgnityDialogDiv > .AgnityDialogListingPageDiv > .AgnityDialogListingPageBodyDiv 
+{
+	
+}
+
+.content  .DebugSettingsParent
+{
+	height: 100%;
+}
+
+.content  .AgnityDialogDiv > .AgnityDialogHeadingDiv
+{
+	float: left;
+	height: 40px;
+}
+
+.content  .DebugSettingsParent > .AgnityDialogListingPageDiv
+{
+	height: calc(100% - 40px);
+}
+
+.content  .DebugSettingsParent > .AgnityDialogListingPageDiv > .AgnityDialogListingPageBodyDiv 
+{
+	height: calc(100% - 70px);
+}
+
+.AuditLogButtons > .AgnityFieldRowSearchButtonClass
+{
+	margin: -2px 7px !important;
+}
+.AgnityDialogHeadingDiv > center
+{
+	margin-top: 10px;
+}
+
+.AgnityFieldRowLabelClass
+{
+	text-align: left !important;
+}
+.AgnityFieldRowButtonClass
+{
+	width: auto !important;
+}
+.AgnityFieldRow
+{
+	color: rgb(112, 112, 112);
+}
+.dropdown-menu
+{
+    box-sizing: border-box;
+    box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%);
+    border-radius: 5px;
+    background: white;
+    padding: 10px;
+    height: 120px;
+    overflow-y: scroll;
+    z-index: 1;
+}
+.form-control 
+{
+	border: 1px solid #c0c0c0;
+	border-radius: 4px;
+	box-sizing: border-box;
+	padding: 10px;
+	margin-top: 0px;
+	height: 125px !important;
+	overflow-y: auto;
+	display: block !important;
+}
+.form-control li input
+{
+	height: auto !important;
+}
+.dashboardcode-bsmultiselect div.dropdown-menu>ul>li:hover
+{
+	background: #c0c0c0;
+}
+.dashboardcode-bsmultiselect div.dropdown-menu>ul>li
+{
+	width: unset !important;
+	text-align: left;
+}
+.btn-close
+{
+	vertical-align: middle !important;
+	padding: 5px;
+	margin-left: 2px;
+	border: none;
+	position: relative;
+    left: 3px;
+	background: url('../images/close.png') no-repeat;
+	filter: hue-rotate(302deg);
+}
+.form-check
+{
+	display: flex;
+    align-items: center;
+}
+.form-check-label
+{
+ 	top: -3px;
+}
+.form-control li.badge
+{
+    margin-bottom: 1px;
+    padding-left: 5px !important;
+    text-align: left;
+}
+.form-control .badge span
+{
+	font-size: 1em;
+	color: #4b4b4b;
+	overflow: hidden;
+    float: left;
+    width: calc(100% - 15px);;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.dashboardcode-bsmultiselect div.dropdown-menu > ul 
+{
+	margin: 0px 5px 0px -10px;
+}
+
+.AuditLogSearch .AgnityFieldRowLabelHolder
+{
+	display: none;
+}
+
+.AuditLogSearch .AgnityFieldRowFieldHolder
+{
+	width: 95%;
+}
+
+
+/* #agnity_domain_page li.disabled {
+    display: none;
+}
+
+#agnity_domain_page .disabled + button {
+    display: none;
+} */ 

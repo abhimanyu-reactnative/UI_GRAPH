@@ -1,0 +1,121 @@
+@charset "ISO-8859-1";
+
+@font-face
+{
+	font-family: 'ProximaNovaA-Light';
+	src: url("../font/ProximaNovaA-Light.eot?#iefix") format("embedded-opentype"),
+	url("../font/ProximaNovaA-Light.woff") format("woff"),
+	url("../font/ProximaNovaA-Light.ttf") format("truetype"),
+	url("../font/ProximaNovaA-Light.otf") format("otf"),
+	url("../font/ProximaNovaA-Light.svg#ProximaNovaA-Light") format("svg"),
+	url("../font/ProximaNovaA-Light.woff2") format("woff2");
+	font-weight: normal;
+	font-style: normal;
+}
+body 
+{
+    font-family: 'ProximaNovaA-Light',Arial,Helvetica,sans-serif;
+    height: 100%;
+	width: 100%;
+    margin: 0px;
+}
+.AgnityDialogListingPageHeadTable.table tbody
+{
+	font-size:0.7em;
+}
+h2 
+{
+    font-size: larger;
+}
+ul 
+{
+    list-style-type: none;
+}
+
+#sidebar 
+{
+	width: 240px;
+	height: 100%;
+    float:left;
+    transition: all 0.3s;
+    position: relative;
+    overflow: auto;
+}
+#sidebar ul > li > .AgnitySidebarPaletteLabel 
+{
+	float: none;
+}
+
+#sidebar ul > li:hover 
+{
+    background: #b1afaf;
+}
+
+#sidebar ul > li.active  
+{
+     background: #b1afaf;
+}
+
+.top_navbar
+{
+  background-color: #85ba49;
+  width: 100%;
+  height: 50px;
+  color: #fff;
+}
+.helpTitle
+{
+	padding: 10px 20px;
+    display: block;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+.wrapper
+{
+	height: 100%;
+	width: 100%;
+}
+.main_container
+{
+	display: inline-block;
+	width: 100%;
+	height: calc(100% - 50px);
+	position: fixed;
+}
+.content
+{
+    width: calc(100% - 260px);
+    height: 100%;
+    overflow-y: auto;
+    float: right;
+}
+.geSidebar.helpsidebar
+{
+  border-bottom: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  margin: 0px;
+}
+.AgnityDialogListingPageHeadTable.table
+{
+	table-layout: auto;
+	border-collapse: collapse;
+	border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.AgnityDialogListingPageHeadTable.table td, .AgnityDialogListingPageHeadTable.table th 
+{
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.settingBackButton{
+		width: 30px;
+		height: 30px;
+		background-repeat: no-repeat;
+		background-size: 30px 30px;
+		cursor: pointer;
+		float: left;
+		margin: 4px;
+}

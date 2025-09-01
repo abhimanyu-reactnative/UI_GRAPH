@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Test HTML</title>
+<script src="ReferenceScript/jquery.min.js"></script>
+<script type="text/javascript">
+	var message;
+	window.addEventListener('message', function(e){
+		console.log('message received');
+		console.log(e);
+		message = e.data;
+		$(".AgnityRecieverDiv div").html('<p>' + message + '</p>');
+	});
+	
+</script>
+</head>
+<body>
+	<div class="AgnityRecieverDiv">
+		<p>Hello welcome to new html page</p>
+		<div>
+		
+		</div>
+	</div>
+	
+</body>
+</html>
