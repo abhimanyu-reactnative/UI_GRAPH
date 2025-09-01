@@ -1,0 +1,4996 @@
+function Agnity()
+{
+	this.tabId = null;
+	this.ui = null;
+	this.mappingData = {};
+		
+	this.serviceEndPoint = "/ADE/api/";
+	this.valueType = [];
+	this.booleanMapping = [];
+	
+	this.connectorResourceValueAry = [];
+	this.connectorValueToResourceMap = new Map();
+	
+	this.prevSelectedCellData = null;
+	this.nodeIdToCellIdMap = new Map();
+	
+	this.allCustomOperations = ['develop', 'test', 'activate', 'deploy'];
+	this.disableMenusOperations = ['newProcess', 'newTree', 'saveProcess_int', 'deleteDialog', 'deleteProcessDialog', 
+		'saveAsProcess', 'newComponent', 'saveUiXml_int', 'deleteTreeTemplateDialog', 'saveAsProcess', 'saveTemplateDialog',
+		'deleteFunctionTemplateDialog', 'saveComponent_int', 'openComponent', 'downloadComponent', 'loadTreeDialog', 'loadProcess_dlg',
+		'loadComponent_dlg', 'loadTemplateDialog', 'openTree', 'importTree', 'exportTree', 'downloadServiceXml_int', 'openServiceXmlDialog', 
+		'openProcess', 'importProcess', 'exportProcess'];
+	
+	this.disableMenusOperationsOnLock = ['saveProcess_int',
+		 'saveUiXml_int', 'saveComponent_int', 'importTree', 'loadTemplateDialog'];
+
+	this.setupMappingData = function(inMappingData)
+	{
+		this.mappingData = inMappingData;
+		
+		this.booleanMapping = inMappingData.booleanMapping;
+		this.valueType = inMappingData.valueType;
+		this.connectorResourceValueAry = inMappingData.connectorResourceValueAry;
+		
+		this.connectorValueToResourceMap = new Map();
+
+		for(var idx = 0; idx < this.connectorResourceValueAry.length; idx++)
+		{
+			var resource = this.connectorResourceValueAry[idx][0];
+			var value = this.connectorResourceValueAry[idx][1];
+			
+			this.connectorValueToResourceMap.set(value, resource);
+		}
+	}
+	
+	this.resetData = function()
+	{
+		this.prevSelectedCellData = null;
+		this.nodeIdToCellIdMap = new Map();
+		
+		var model = this.ui.editor.graph.getModel();           		                                 										
+		var nodes = model.getChildVertices(model.getCell(1));
+		this.nodeData = [];
+		if(nodes != null)
+		{
+			for(var idx = 0; idx < nodes.length; idx++)
+			{
+				var cell = nodes[idx];
+				
+				var graph = this.ui.editor.graph;
+
+				var valObj = graph.getModel().getValue(cell);
+				if (valObj == null || typeof valObj === 'string') 
+				{
+					continue;
+				}
+
+				var agnityData = valObj.getAttribute('agnityData');
+				if(agnityData == null) continue;
+				
+				var parsedData = JSON.parse(agnityData);
+
+				var cellId = cell.id;
+				var nodeId = parsedData.nodeId;
+				this.nodeData.push(parsedData);
+				this.nodeIdToCellIdMap.set(nodeId, cellId);
+			}
+		}	
+		this.setAMMappingData(this.nodeData);
+		Agnity.setupCustomOperations(this.ui);
+	}
+
+	this.setAMMappingData = function(nodes) {
+
+		this.amcNodeData = [];
+
+		for(let i of nodes) {
+			if(i.name == 'NODE_MEASUREMENT_SET') {
+				this.amcNodeData = [...i["pegCounts"]];
+			}
+		}
+	}
+
+	this.getAMMappingData = function() {
+		return this.amcNodeData || [];
+	}
+
+	this.validateNode = function()
+	{
+		if(this.prevSelectedCellData == null || this.prevSelectedCellData instanceof AgnityTreeData || this.prevSelectedCellData instanceof AgnityComponentData) return;
+		
+		var inNodeData = this.prevSelectedCellData;
+		
+		var ui = inNodeData.ui;
+		var cell = inNodeData.cell;
+		var graph = ui.editor.graph;
+		
+		var nodeId = inNodeData.nodeId;
+		var cellId = cell.id;
+		
+		var usedCellId = this.nodeIdToCellIdMap.get(nodeId);
+		
+		if(usedCellId == null)
+		{
+			this.nodeIdToCellIdMap.set(nodeId, cellId);
+			return;
+		}
+		else if(usedCellId == cellId)
+		{
+			return;
+		}
+		
+		
+		inNodeData.nodeId = Agnity.nodeId();
+		this.nodeIdToCellIdMap.set(inNodeData.nodeId, cellId);
+		Agnity.storeNodeData(inNodeData);
+	}
+	
+	this.startMessageListener = function(tabId)
+	{
+		var self = this;
+		this.tabId = tabId;
+		
+		window.addEventListener('message', function(event)
+		{
+			var msg = event.data;
+			var payload = msg.payload;
+			
+			if(msg.to != tabId || msg.from != 'ForestViewer') return;
+
+			if(msg.command == 'Save')
+			{				
+				if(Agnity.isComponentDiagram())
+					self.ui.actions.get('saveComponent_int').funct(null);
+				else if(Agnity.isProcessDiagram())
+					self.ui.actions.get('saveProcess_int').funct(null);
+				else if(Agnity.isDBSchemaDiagram())
+					self.ui.actions.get('saveDBSchema_int').funct(null);
+				else
+					self.ui.actions.get('saveUiXml_int').funct();
+			}
+			else if(msg.command == "AutoSave")
+			{
+				self.ui.actions.get('autoSave').funct();
+			}
+			else if(msg.command == 'executeAction')
+			{
+				self.ui.actions.get(payload.action).funct();
+			}
+			else if(msg.command == 'SaveAsTemplate')
+			{
+				self.ui.actions.get('saveTemplateDialog').funct();
+			}
+			else if(msg.command == 'Search')
+			{
+				self.ui.actions.get('searchDialog').funct();
+			}
+			else if(msg.command == 'Full Screen')
+			{
+				self.ui.toggleFullscreen(false);	
+			}
+			else if(msg.command == 'Navigator')
+			{
+				self.ui.toggleAgnityNavigator(false);
+			}
+			else if(msg.command == 'Toggle SideBar')
+			{
+				self.ui.toggleSidebar(false);
+			}
+			else if(msg.command == 'Toggle Header')
+			{
+				self.ui.toggleMenuContainer(false);
+			}
+			else if(msg.command == 'Toggle Right Panel')
+			{
+				self.ui.toggleFormatPanel(false);	
+			}
+			else if(msg.command == 'Settings')
+			{
+				self.ui.actions.get('settingsDialog').funct();
+			}
+			else if(msg.command == 'GetDebugFile')
+			{
+				self.ui.actions.get('debug').funct();
+			}
+			else if(msg.command == 'EnableDebugView')
+			{					
+				if(payload.cellId == null) return;
+												
+				var cell = self.ui.editor.graph.getModel().getCell(payload.cellId);
+								
+				if(cell == null) return;
+				
+				if(cell.edge)
+				{	
+					self.ui.editor.graph.getModel().setStyle(cell, cell.style + ";strokeColor=#dffebc");
+				}
+				else
+				{
+					self.ui.editor.graph.getModel().setStyle(cell, cell.style + ";fillColor=#dffebc;gradientColor=#dffebc");
+				}
+			}
+			else if(msg.command == 'DisableDebugView')
+			{
+				if(payload.cellId == null) return;
+				
+				var cell = self.ui.editor.graph.getModel().getCell(payload.cellId);
+				
+				if(cell == null) return;
+				
+				var cellStyle = cell.style;
+				
+				var debugViewStyle = ";fillColor=#dffebc;gradientColor=#dffebc";
+				
+				if(cell.edge)
+				{
+					debugViewStyle = ";strokeColor=#dffebc";
+				}
+								
+				if(!Agnity.includes(cellStyle, debugViewStyle)) return;
+				
+				var defaultStyle = cellStyle.replace(debugViewStyle, '');
+				self.ui.editor.graph.getModel().setStyle(cell, defaultStyle);
+			}
+			else if(msg.command == 'ShowCell')
+			{
+				self.ui.actions.get('showCell').funct(payload.cellId);
+			}
+			else if(msg.command == 'Get Available Applications')
+			{
+				Agnity.getApplications();
+			}
+			else if(msg.command == 'Create Application')
+			{
+				self.ui.actions.get('createForest').funct();
+			}
+	});
+	}
+
+	this.postMessageToReactApp = function (d) {
+		window.parent.postMessage(d, $(location).attr("href"));
+	}
+
+	this.sendMessageToParent = function(command, payload)
+	{
+		var msg = {};
+		msg.command = command;
+		msg.to = 'ForestViewer';
+		msg.from = this.tabId;
+		msg.payload = payload;
+		
+		if(this.tabId != null)	
+			window.parent.postMessage(msg, $(location).attr("href"));
+	}
+}
+
+var agnityGlobalData = new Agnity();
+
+Agnity.nodeId = function()
+{
+	return 'RAND' + ('yxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+	    return v.toString(16);
+	  }));}
+
+Agnity.uuid = function()
+{
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+		    return v.toString(16);
+		  });		
+}
+
+Agnity.convertMapToObject = function(inMap)
+{
+	var ret = {};
+
+	inMap.forEach(function(value, key)
+	{
+		ret[key] = value
+	});
+
+	return ret;
+}
+
+Agnity.convertObjectToMap = function(inObj)
+{
+	var obj = inObj;
+	var ret = new Map();
+	
+	for(var key in obj)
+	{
+		if(obj.hasOwnProperty(key))
+		{
+			ret.set(key, obj[key]);
+		}
+	}
+	return ret;
+}
+
+Agnity.convertMapToArray = function(inMap)
+{
+	var ret = [];
+	var keys = [];
+		
+	inMap.forEach(function callback(value, key,
+			map)
+	{
+		keys.push(key);
+	});
+	
+	keys.sort();
+	
+	keys.map(function(key)
+	{
+		ret.push(inMap.get(key));
+	});
+	
+	return ret;
+}
+
+Agnity.getNodeName = function(nodeData)
+{
+	if(nodeData instanceof AgnityExpressionNodeData)
+	{
+		return 'NODE_EXPRESSION';
+	}
+	
+	return nodeData.name;
+}
+
+Agnity.getTreeData = function(ui)
+{
+	var data = new AgnityTreeData(ui);
+
+	if((data.forestName == null || data.forestName == '') && Agnity.getDefaultForestName() != null)
+	{
+		data.forestName = Agnity.getDefaultForestName();
+	}
+	
+	var graph = ui.editor.graph;
+
+	var cell = graph.getModel().getCell(1);
+	if (cell == null) return data;
+
+	var valObj = graph.getModel().getValue(cell);
+	
+	if (valObj == null)
+	{
+		Agnity.storeTreeData(data);
+		return data;
+	}
+	
+	var agnityData = valObj.getAttribute('agnityData');	
+	data.setupAgnityData(agnityData);
+	
+	if((data.forestName == null || data.forestName == '') && Agnity.getDefaultForestName() != null)
+	{
+		data.forestName = Agnity.getDefaultForestName();
+	}
+	
+	return data;
+}
+
+Agnity.getUiXml = function(ui)
+{
+	let editor = ui.editor;
+	let uiXml = mxUtils.getPrettyXml(editor.getGraphXml()).replace(/(\r\n|\n|\r)/gm, '').replace(/  +/g, '');
+	
+	return uiXml;
+}
+
+Agnity.getLabel = function(ui, cell)
+{
+	var graph = ui.editor.graph;
+	var valObj = cell.value;
+	
+	if(valObj == null || valObj.toString().trim() == '') return;
+	
+	return valObj.getAttribute('label');
+}
+
+Agnity.setLabel = function(ui, cell, label)
+{
+	var graph = ui.editor.graph;
+	var valObj = cell.value;
+	
+	if(valObj == null) return;
+	
+	valObj.setAttribute('label', label);
+	graph.getModel().setValue(cell, valObj);
+}
+
+Agnity.storeTreeData = function(inTreeData)
+{
+	if(Agnity.hasUrlReadonlyParam()) return;
+	
+	var ui = inTreeData.ui;
+	var graph = ui.editor.graph;
+
+	var cell = graph.getModel().getCell(1);
+	if (cell == null) return;
+
+	var agnityData = inTreeData.getAgnityData();
+	
+	var valObj = cell.value;
+	
+	if(valObj == null)
+	{
+		valObj = mxUtils.createXmlDocument().createElement('object');
+	}
+	
+	valObj.setAttribute('agnityData', agnityData);
+
+	graph.getModel().setValue(cell, valObj);
+}
+
+Agnity.getComponentData = function(ui)
+{
+	var data = new AgnityComponentData(ui);
+
+	if((data.forestName == null || data.forestName == '') && Agnity.getDefaultForestName() != null)
+	{
+		data.forestName = Agnity.getDefaultForestName();
+	}
+	
+	var graph = ui.editor.graph;
+
+	var cell = graph.getModel().getCell(1);
+	if (cell == null) return data;
+
+	var valObj = graph.getModel().getValue(cell);
+	
+	if (valObj == null)
+	{
+		Agnity.storeComponentData(data);
+		return data;
+	}
+	
+	var agnityData = valObj.getAttribute('agnityData');	
+	data.setupAgnityData(agnityData);
+	
+	if((data.forestName == null || data.forestName == '') && Agnity.getDefaultForestName() != null)
+	{
+		data.forestName = Agnity.getDefaultForestName();
+	}
+	
+	return data;
+}
+
+Agnity.storeComponentData = function(inComponentData)
+{
+	if(Agnity.hasUrlReadonlyParam()) return;
+	
+	var ui = inComponentData.ui;
+	var graph = ui.editor.graph;
+
+	var cell = graph.getModel().getCell(1);
+	if (cell == null) return;
+
+	var agnityData = inComponentData.getAgnityData();
+	
+	var valObj = cell.value;
+	
+	if(valObj == null)
+	{
+		valObj = mxUtils.createXmlDocument().createElement('object');
+	}
+	
+	valObj.setAttribute('agnityData', agnityData);
+
+	graph.getModel().setValue(cell, valObj);
+}
+
+Agnity.storeNodeData = function(inNodeData)
+{
+	if(Agnity.hasUrlReadonlyParam()) return;
+	
+	var ui = inNodeData.ui;
+	var cell = inNodeData.cell;
+	var graph = ui.editor.graph;
+	
+	var agnityData = inNodeData.getAgnityData();
+
+	var valObj = cell.value;
+	
+	if(valObj == null)
+	{
+		valObj = mxUtils.createXmlDocument().createElement('object');
+		valObj.setAttribute('label', '');
+	}
+	else if(typeof valObj === 'string')
+	{
+		valObj = mxUtils.createXmlDocument().createElement('object');
+		valObj.setAttribute('label', cell.value);
+	}
+	
+	valObj.setAttribute('agnityData', agnityData);
+
+
+	graph.getModel().setValue(cell, valObj);
+}
+
+Agnity.setupAgnityNodeData = function(data)
+{
+	var graph = data.ui.editor.graph;
+
+	var valObj = graph.getModel().getValue(data.cell);
+	if (valObj == null || typeof valObj === 'string') 
+	{
+		Agnity.storeNodeData(data);
+		return data;
+	}
+
+	var agnityData = valObj.getAttribute('agnityData');
+	if(agnityData == null) return;
+	
+	data.setupAgnityData(agnityData);
+	return data;
+}
+
+Agnity.getUserTypeCells = function(ui)
+{
+	var ret = new Array();
+	var model = ui.editor.graph.getModel();
+	
+	var nodes = model.getChildVertices(model.getCell(1));
+	
+	if(nodes == null) return ret;
+	
+	for(var idx = 0; idx < nodes.length; idx++)
+	{
+		var cell = nodes[idx];
+		
+		var valObj = model.getValue(cell);
+		if(valObj == null || typeof valObj === 'string') continue;
+		
+		var agnityData = valObj.getAttribute('agnityData');
+		if(agnityData == null) continue;
+		
+		var parsedData = JSON.parse(agnityData);
+		
+		if(parsedData.hasOwnProperty("name"))
+		{
+			if(Agnity.isDBSchemaDiagram() && parsedData.name == 'NODE_USER_TYPE') 
+			{
+				var userType = Agnity.getLabel(ui, cell)
+				ret.push(userType);
+			}
+			
+		}
+	}
+	
+	return ret;
+}
+
+Agnity.getTableCellsInfo = function(ui)
+{
+	var ret = new Map();
+	var model = ui.editor.graph.getModel();
+	
+	var nodes = model.getChildVertices(model.getCell(1));
+	
+	if(nodes == null) return ret;
+	
+	for(var idx = 0; idx < nodes.length; idx++)
+	{
+		var cell = nodes[idx];
+		
+		var valObj = model.getValue(cell);
+		if (valObj == null || typeof valObj === 'string') continue;
+		
+		var agnityData = valObj.getAttribute('agnityData');
+		if(agnityData == null) return;
+		
+		var parsedData = JSON.parse(agnityData);
+		
+		if(parsedData.hasOwnProperty("name"))
+		{
+			if(Agnity.isDBSchemaDiagram() && parsedData.name == 'NODE_TABLE') 
+			{
+				var tableName = Agnity.getLabel(ui, cell)
+				ret.set(tableName, Array.from(Agnity.convertObjectToMap(parsedData.manageColumnsMap).keys()));
+			}
+			
+		}
+	}
+	return ret;
+}
+
+Agnity.getSequenceCells = function(ui)
+{
+	var ret = new Array();
+	var model = ui.editor.graph.getModel();
+	
+	var nodes = model.getChildVertices(model.getCell(1));
+	
+	ret.push("NONE");
+	
+	if(nodes == null) return ret;
+	
+	for(var idx = 0; idx < nodes.length; idx++)
+	{
+		var cell = nodes[idx];
+		
+		var valObj = model.getValue(cell);
+		if (valObj == null || typeof valObj === 'string') continue;
+		
+		var agnityData = valObj.getAttribute('agnityData');
+		if(agnityData == null) return;
+		
+		var parsedData = JSON.parse(agnityData);
+		
+		if(parsedData.hasOwnProperty("name"))
+		{
+			if(Agnity.isDBSchemaDiagram() && parsedData.name == 'NODE_SEQUENCE') 
+			{
+				var sequenceName = Agnity.getLabel(ui, cell)
+				ret.push(sequenceName);
+			}
+			
+		}
+	}
+	return ret;
+}
+
+Agnity.getCellId = function(ui, inLabel)
+{
+	var model = ui.editor.graph.getModel();
+	
+	var nodes = model.getChildVertices(model.getCell(1));
+	
+	if(nodes == null) return null;
+	
+	for(var idx = 0; idx < nodes.length; idx++)
+	{
+		var cell = nodes[idx];
+		
+		var valObj = model.getValue(cell);
+		if (valObj == null || typeof valObj === 'string') continue;
+
+		var agnityData = valObj.getAttribute('agnityData');
+		if(agnityData == null) return;
+		
+		var parsedData = JSON.parse(agnityData);
+		
+		if(parsedData.hasOwnProperty("name"))
+		{
+			if(Agnity.isDBSchemaDiagram() && parsedData.name == 'NODE_TABLE') 
+			{
+				var tableName = Agnity.getLabel(ui, cell);
+				if(tableName === inLabel)
+				{
+					return cell.getId();
+				}
+			}
+			
+		}
+	}
+	
+	return null;
+}
+
+Agnity.getStartNodeCell = function(ui)
+{
+	var model = ui.editor.graph.getModel();
+	
+	var nodes = model.getChildVertices(model.getCell(1));
+	
+	if(nodes == null) return null;
+	
+	for(var idx = 0; idx < nodes.length; idx++)
+	{
+		var cell = nodes[idx];
+		
+		var valObj = model.getValue(cell);
+		if (valObj == null || typeof valObj === 'string') continue;
+
+		var agnityData = valObj.getAttribute('agnityData');
+		if(agnityData == null) return;
+		
+		var parsedData = JSON.parse(agnityData);
+		
+		if(parsedData.hasOwnProperty("name"))
+		{
+			if(Agnity.isProcessDiagram() && parsedData.name == 'NODE_PROCESS_START') return cell;
+			else if(parsedData.name == 'NODE_START') return cell;
+		}
+	}
+	
+	return null;
+}
+
+Agnity.getValidateNodeLabel = function(prevSelectedNode)
+{
+	var node = prevSelectedNode;
+	var cell = prevSelectedNode.cell;
+	
+	var label = Agnity.getLabel(prevSelectedNode.ui, cell);
+	
+	label = Agnity.getStringReplaceAll(label);
+	
+	Agnity.setLabel(prevSelectedNode.ui, cell, label);
+}
+
+Agnity.getStringReplaceAll = function(str)
+{
+	return str.trim().replace(/&nbsp;/g, '').replace(/ /g, '_');
+}
+
+Agnity.getStartNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityStartNodeData(ui, cell));
+}
+
+Agnity.getCdrNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityCdrNodeData(ui, cell));
+}
+
+Agnity.getIntermCdrNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityIntermCdrNodeData(ui, cell));
+}
+
+Agnity.getAssignNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityAssignNodeData(ui, cell));
+}
+
+Agnity.getDbNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityDbNodeData(ui, cell));
+}
+
+Agnity.getConditionNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityConditionNodeData(ui, cell));
+}
+
+Agnity.getExpressionNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityExpressionNodeData(ui, cell));
+}
+
+Agnity.getConnectNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityConnectNodeData(ui, cell));
+}
+
+Agnity.getPlayAndCollectNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityPlayAndCollectNodeData(ui, cell));
+}
+
+Agnity.getPlayNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityPlayNodeData(ui, cell));
+}
+
+Agnity.getPlaySpeechNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityPlaySpeechNodeData(ui, cell));
+}
+
+Agnity.getSwitchNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnitySwitchNodeData(ui, cell));
+}
+
+Agnity.getSoapNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnitySoapNodeData(ui, cell));
+}
+
+Agnity.getRestNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityRestNodeData(ui, cell));
+}
+
+Agnity.getJavaNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityJavaNodeData(ui, cell));
+}
+
+Agnity.getRouteCallNodeData = function(ui, cell)
+{	
+	return Agnity.setupAgnityNodeData(new AgnityRouteCallNodeData(ui, cell));
+}
+
+Agnity.getTerminateNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityTerminateNodeData(ui, cell));
+}
+
+Agnity.getTimePatternNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityTimePatternNodeData(ui, cell));
+}
+
+Agnity.getOriginPatternNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityOriginPatternNodeData(ui, cell));
+}
+
+Agnity.getCreateConferenceNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityCreateConferenceNodeData(ui, cell));
+}
+
+Agnity.getJoinConferenceNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityJoinConferenceNodeData(ui, cell));
+}
+
+Agnity.getUnJoinConferenceNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityUnJoinConferenceNodeData(ui, cell));
+}
+
+Agnity.getDestroyConferenceNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityDestroyConferenceNodeData(ui, cell));
+}
+
+Agnity.getRecordNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityRecordNodeData(ui, cell));
+}
+
+Agnity.getStopMediaNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityStopMediaNodeData(ui, cell));
+}
+
+Agnity.getEventHandlerNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityEventHandlerNodeData(ui, cell));
+}
+
+Agnity.getCreateTimerNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityCreateTimerNodeData(ui, cell));
+}
+
+Agnity.getBlockPatternNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityBlockPatternNodeData(ui, cell));
+}
+
+Agnity.getCallAreaScreeningNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityCallAreaScreeningNodeData(ui, cell));
+}
+
+Agnity.getDialedPatternNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityDialedPatternNodeData(ui, cell));
+}
+
+Agnity.getPercentageNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityPercentageNodeData(ui, cell));
+}
+
+Agnity.getStopTimerNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityStopTimerNodeData(ui, cell));
+}
+
+Agnity.getAccountCodeNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityAccountCodeNodeData(ui, cell));
+}
+
+Agnity.getCallHoldNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityCallHoldNodeData(ui, cell));
+}
+
+Agnity.getDigitPatternNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityDigitPatternNodeData(ui, cell));
+}
+
+Agnity.getFunctionBlockNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityFunctionBlockNodeData(ui, cell));
+}
+
+Agnity.getTreeNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityTreeNodeData(ui, cell));
+}
+
+Agnity.getProcessCallNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityProcessNodeData(ui, cell));
+}
+
+Agnity.getProcessStartNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityProcessStartNodeData(ui, cell));
+}
+
+Agnity.getReturnNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityReturnNodeData(ui, cell));
+}
+
+Agnity.getResyncCallNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityResyncCallNodeData(ui, cell));
+}
+
+Agnity.getDialOutCallNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityDialOutCallNodeData(ui, cell));
+}
+
+Agnity.getTableNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityTableNodeData(ui, cell));
+}
+
+Agnity.getSequenceNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnitySequenceNodeData(ui, cell));
+}
+
+Agnity.getViewNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityViewNodeData(ui, cell));
+}
+
+Agnity.getUserTypeNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityUserTypeNodeData(ui, cell));
+}
+
+Agnity.getSendAlaramNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnitySendAlaramNodeData(ui, cell));
+}
+
+Agnity.getEndExecutionNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityEndExecutionNodeData(ui, cell));
+}
+
+Agnity.getSendSMSNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnitySendSMSNodeData(ui, cell));
+}
+
+Agnity.getSendEmailNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnitySendEmailNodeData(ui, cell));
+}
+
+Agnity.getRoutingEngineNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityRouteEngineNodeData(ui, cell));
+}
+
+Agnity.getREPlayNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityREPlayNodeData(ui, cell));
+}
+
+Agnity.getREPlayCollectNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityREPlayCollectNodeData(ui, cell));
+}
+
+Agnity.getRERouteNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityRERouteNodeData(ui, cell));
+}
+
+Agnity.getApplyChargeNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityApplyChargeNodeData(ui, cell));
+}
+
+Agnity.getACGNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityACGNodeData(ui, cell));
+}
+
+Agnity.getTriggerRuleNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityTriggerRuleNodeData(ui, cell));
+}
+
+Agnity.getTuiNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityTuiNodeData(ui, cell));
+}
+
+Agnity.getEnumNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityEnumNodeData(ui, cell));
+}
+
+Agnity.getAVPRNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityAVPRNodeData(ui, cell));
+}
+
+Agnity.getAVPWNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityAVPWNodeData(ui, cell));
+}
+
+Agnity.getDiameterCCRNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityDiameterCCRNodeData(ui, cell));
+}
+
+Agnity.getDiameterCCANodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityDiameterCCANodeData(ui, cell));
+}
+
+Agnity.getSipHeaderNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnitySipHeaderNodeData(ui, cell));
+}
+
+Agnity.getCheckPointNodeData = function(ui ,  cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityCheckPointData(ui ,cell));
+}
+
+
+Agnity.getSmppNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnitySmppNodeData(ui, cell));
+}
+
+Agnity.getGdiNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityGdiNodeData(ui, cell));
+}
+
+Agnity.getDisconnectLegNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityDisconnectLegNodeData(ui, cell));
+}
+
+
+Agnity.getForceCallCleanupNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityForceCallCleanupNodeData(ui, cell));
+}
+
+Agnity.getServiceChainingNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityServiceChainingNodeData(ui, cell));
+}
+
+
+Agnity.getEchoDataNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityEchoDataNodeData(ui, cell));
+}
+Agnity.getCCBNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityCCBNodeData(ui, cell));
+}
+
+Agnity.getATINodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityATINodeData(ui, cell));
+}
+
+Agnity.getUDRNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityUDRNodeData(ui, cell));
+}
+Agnity.getPegCountData = function(ui, cell)
+{
+    return Agnity.setupAgnityNodeData(new AgnityPegCount(ui, cell));
+}
+Agnity.getHttpRaNodeData = function(ui, cell)
+{
+    return Agnity.setupAgnityNodeData(new AgnityHttpRaData(ui, cell));
+}
+
+Agnity.getApplicationCounterData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityApplicationCounter(ui, cell));
+}
+
+Agnity.getCallQueuingNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityCallQueuingNodeData(ui, cell));
+}
+
+Agnity.getinitiateSs7CallNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityInitiateSs7CallNodeData(ui, cell));
+}
+
+Agnity.getCallQueuingNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityCallQueuingNodeData(ui, cell));
+}
+
+Agnity.getinitiateSs7CallNodeData = function(ui, cell)
+{
+	return Agnity.setupAgnityNodeData(new AgnityInitiateSs7CallNodeData(ui, cell));
+}
+
+function AgnityLocalVariableData()
+{
+	this.variableName = '';
+	this.initValue = '';
+	this.type = '';
+}
+
+function AgnitySMSVariableData()
+{
+	this.label = '';
+	this.label_MX = '';
+	this.type = '';
+	this.htmltype = 'text';
+	this.defaultValue = '';
+	this.varName = '';
+	this.size = '';
+	this.maxLength = '';
+	this.minLength = '';
+	this.isRequired = false;
+	this.fieldType = '';
+	this.minValue = '';
+	this.maxValue = '';
+	this.dataType = '';
+}
+
+function AgnityCdrParamData()
+{
+	this.desc = '';
+	this.valueType = '';
+	this.value = '';
+}
+
+function AgnityIntermCdrParamData()
+{
+	this.desc = '';
+	this.valueType = '';
+	this.value = '';
+}
+
+function AgnityPegCountData()
+{
+	this.pegCountName = '';
+}
+// function AgnityHttpRaData()
+// {
+// 	this.httpRaCountName = '';
+// }
+
+function AgnityHttpRaData()
+{
+	this.httpRaCountName = '';
+}
+
+function AgnitySipHeaderData()
+{ 
+	this.headerName = '';
+	this.headerValueType = '';
+	this.headerValue = '';	
+}
+
+
+function AgnitySmppData()
+{
+	this.name = '';
+	this.destPh = '';
+	this.srcPh = '';
+	this.shortMsg = '';
+	
+}
+
+function AgnityGdiData()
+{
+	this.name = '';
+	this.recieverId = '';
+	this.dialledNumber = '';
+	this.callingNumber = '';
+	
+}
+
+function AgnityCCBData()
+{
+	this.name = '';
+	this.callBarringFunction ='';
+	this.numberType='';
+	this.groupId = '';
+	this.number ='';
+	this.groupLimit = '';
+	this.numberLimit = '';
+	this.callLimit = '';
+	this.checkEmail = false;
+	this.emailContent = '';
+	this.emailSubject = '';
+	this.emailRecipients= '';
+	this.emailThreshold= '';
+}
+
+function AgnityATIData()
+{
+	this.name = '';
+	this.currLocation = '';
+	this.domainType='';
+	this.msisdn = '';
+}
+
+function AgnityUDRData()
+{
+	this.name = '';
+	this.currLocation = '';
+	this.msisdn = '';
+	this.destinationRealm = '';
+}
+
+function AgnityCallQueuingData()
+{
+	this.name = '';
+	this.cqOperation = '';
+	this.tfNumber='';
+	this.initialAnnEnabled='';
+	this.initialAnn='';
+	this.activeCallsLimit = '';
+	this.queueTimeoutAnnEnabled='';
+	this.queueTimeoutAnn='';
+	this.normalQueueSize='';
+	this.normalQueueTimeout='';
+	this.normalQueueAnn='';
+	this.queueOverflowAnnEnabled='';
+	this.normalQueueOverflowAnn='';
+	this.priorityQueueSize='';
+	this.priorityQueueTimeout='';
+	this.priorityQueueAnn='';
+	this.priorityQueuePIN='';
+	this.priorityQueuePINAnn='';
+	this.priorityQueueOverflowAnn='';
+	this.incorrectPINAnn = '';
+	this.moveToPriorityAnn ='';
+	this.maxRetriesFailedAnn = '';
+	this.priorityPINMaxRetries = '';
+	this.priorityQueue='';
+	this.priorityQueueEnabled='';
+	this.enableQueuing='';
+}
+
+function AgnityAssignNodeVariable()
+{
+	this.to = '';
+	this.valueType = '';
+	this.from = '';	
+}
+
+function AssignUnsetVariable()
+{
+	this.from = '';
+}
+
+function AgnityPlayItem()
+{
+	this.playType = '';
+	this.type = '';
+	this.subtype = '';
+	this.variable = '';
+	this.staticAnnType = '';
+	this.value = '';
+	this.valueType = '';
+	this.smsVariable = '';
+	this.language = '';
+}
+
+function AgnityPlayCollectItem()
+{
+	this.playType = '';
+	this.type = '';
+	this.subtype = '';
+	this.variable = '';
+	this.staticAnnType = '';
+	this.value = '';
+	this.valueType = '';
+	this.smsVariable = '';
+	this.isRetry = false;
+	this.language = '';
+}
+
+function AgnityDbQuerySpecifierData()
+{
+	this.type = '';
+	this.varType = '';
+	this.name = '';
+	this.value = '';
+	this.position = '';
+	this.inOrOut = '';
+	this.parsingstyle = '';
+}
+
+function AgnitySoapQueryInput()
+{
+	this.type = '';
+	this.valueType = '';
+	this.value = '';
+}
+
+function AgnityHttpRaQueryInput()
+{
+	//this.headername = '';
+	this.name = '';
+	
+	this.valueType = '';
+	//this.headervalue = '';
+	this.value = '';
+}
+
+function AgnitySoapQueryOutput()
+{
+	this.name = '';
+	this.outputKey = '';
+	this.isArrayResponse = false;
+}
+
+function AgnityProcessNodeVariable()
+{
+	this.processVar = '';
+	this.invarType = '';
+	this.inVar = '';
+	this.outVar = '';
+};
+
+function AgnityCASData()
+{
+	this.name = '';
+	this.ip = '';
+	this.port = '';
+	this.sshUser = '';
+	this.sshPort = '22';
+	this.sshPassword = '';
+	this.ctfsd = '/STORE/ADE/debug';
+	this.group = '';
+}
+
+function AgnityCASGroupData()
+{
+	this.name = '';
+}
+
+function AgnityRuleInfo()
+{
+	this.sipHeader = '';
+	this.routingRegion = '';
+	this.routeModifier = '';
+	this.regex = '';
+	this.ignore = false;
+}
+
+function AgnityDBConfig()
+{
+	this.user ='';
+	this.password = '';
+	this.scheme = '';
+	this.host = '';
+	this.type = '';
+}
+
+function AgnityColumnInfo()
+{
+	this.name = '';
+	this.apiName = '';
+	this.description = '';
+	this.columnType = '';
+	this.type = '';
+	this.size = '';
+	this.sizeType = '';
+	this.isSort = false;
+	this.defaultVal = '';	
+	this.nullVal = '';
+	this.precision = '';
+	this.scale = '';
+	this.timestampType = '';
+	this.secondsPrecision = '';
+	this.formulaText = '';
+	this.isSeqGeneratedField = false;
+	this.sequenceName = 'NONE';
+	this.isInternalProperty = false;
+}
+
+function AgnityIndex()
+{
+	this.name = '';
+	this.type = '';
+	this.description = '';
+	this.selectedColumns = '';
+	this.sort = '';
+	this.isReverse = false;
+	this.visible = '';
+}
+
+function AgnityConstraintsInfo()
+{
+	this.name = '';
+	this.type = '';
+	this.description = '';
+	this.selectedColumns = '';
+	this.table = '';
+	this.tableColumn = '';
+	this.reference = '';
+	this.check = '';
+}
+
+function AgnityObjectRuleInfo()
+{
+	this.expression = '';
+	this.errorMessage = '';
+	this.errorOnTrue = false;
+}
+
+function AgnityManageAuditInfo()
+{
+	this.name = '';
+	this.description = '';
+	this.selectedColumns = '';
+	this.ignoreAudit = false;
+}
+
+function AgnityFunctionArg()
+{
+	this.valueType = 'Literal';
+	this.value = '';
+}
+
+function AgnityTuiKey()
+{
+	this.id = '';
+	this.valueType = 'Literal';
+	this.value = '';
+}
+
+function AgnityAvpData()
+{
+	this.name = '';
+	this.code = '';
+	this.vendorId = '';
+	this.type = 'Integer32';
+	this.data = '';
+}
+
+function AgnitySs7CallInitiateItem()
+{
+	this.pName = '';
+	this.pValue = '';
+	this.type = '';
+}
+
+function AgnityTreeData(inUi)
+{
+	this.ui = inUi;
+	this.treeName = '';
+	this.forestName = '';
+	this.treeVersion = '';
+	this.apiVersion = '1';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		if(parsedData == null) return;
+
+		this.treeName = parsedData.treeName;
+		this.forestName = parsedData.forestName;
+		this.treeVersion = (parsedData.treeVersion == null) ? '' : parsedData.treeVersion;
+		this.apiVersion = (parsedData.apiVersion == null) ? '' : parsedData.apiVersion;
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		toSend.treeName = this.treeName;
+		toSend.forestName = this.forestName;
+		toSend.treeVersion = this.treeVersion;
+		toSend.apiVersion = this.apiVersion;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityComponentData(inUi)
+{
+	this.ui = inUi;
+	this.forestName = '';
+	this.componentName = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		if(parsedData == null) return;
+
+		this.forestName = parsedData.forestName;
+		this.componentName = parsedData.componentName;		
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+
+		toSend.forestName = this.forestName;
+		toSend.componentName = this.componentName;		
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityStartNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.appId = '';
+	this.versionId = '1.0';
+	this.type = 'JAVA';
+	this.name = 'NODE_START';
+	this.localVariableMap = new Map();
+	this.smsVariableMap = new Map();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.appId = parsedData.appId;
+		this.versionId = parsedData.versionId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.localVariableMap = Agnity.convertObjectToMap(parsedData.localVariableMap);
+		this.smsVariableMap = Agnity.convertObjectToMap(parsedData.smsVariableMap);
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.appId = this.appId;
+		toSend.versionId = this.versionId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.localVariableMap = Agnity.convertMapToObject(this.localVariableMap);
+		toSend.smsVariableMap = Agnity.convertMapToObject(this.smsVariableMap);
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityCdrNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_CDR';
+	this.delimiter = 'COMMA';
+	this.cdrParams = new Array();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.delimiter = parsedData.delimiter;
+		this.cdrParams = parsedData.cdrParams;
+	}
+
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.delimiter = this.delimiter;
+		toSend.cdrParams = this.cdrParams;
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityIntermCdrNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_INTERM_CDR';
+	this.delimiter = 'COMMA';
+	this.cdrParams = new Array();
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.delimiter = parsedData.delimiter;
+		this.cdrParams = parsedData.cdrParams;
+	}
+
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.delimiter = this.delimiter;
+		toSend.cdrParams = this.cdrParams;
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityAssignNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ASSIGN';
+	this.assignNodeVariableMap = new Map();
+	this.assignUnsetVariables = new Array();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.assignNodeVariableMap = Agnity.convertObjectToMap(parsedData.assignNodeVariableMap);
+		this.assignUnsetVariables = parsedData.assignUnsetVariables;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.assignNodeVariableMap = Agnity.convertMapToObject(this.assignNodeVariableMap);
+		toSend.assignUnsetVariables = this.assignUnsetVariables;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityDbNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.packageType = 'Literal';
+	this.package = '';
+	this.type = 'DB';
+	this.name = 'NODE_DB_QUERY';
+	this.procQuery = '';
+	this.results_in = '';
+	this.isQuery = false; // picklist(true, false)
+	this.isReadOnly = true;
+	this.dbQuerySpecifiers = new Array();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.packageType = parsedData.packageType;
+		this.package = parsedData.package;
+		this.name = parsedData.name;
+		this.procQuery = parsedData.procQuery;
+		this.results_in = parsedData.results_in;
+		this.isQuery = parsedData.isQuery;
+		this.isReadOnly= parsedData.isReadOnly;
+		this.dbQuerySpecifiers = parsedData.dbQuerySpecifiers;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.packageType = this.packageType;
+		toSend.package = this.package;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.procQuery = this.procQuery;
+		toSend.results_in = this.results_in;
+		toSend.isQuery = this.isQuery;
+		toSend.isReadOnly= this.isReadOnly;
+		toSend.dbQuerySpecifiers = this.dbQuerySpecifiers;
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityConditionNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_FUNCTION';
+	this.functionName = 'COMPARE';
+	this.LHS = 'Literal';
+	this.RHS = 'Literal';
+	this.LHSValue = '';
+	this.RHSValue = '';
+	this.RHS1 = 'Literal';
+	this.RHS1Value = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.functionName = parsedData.functionName;
+		this.LHS = parsedData.LHS;
+		this.RHS = parsedData.RHS;
+		this.RHS1 =  parsedData.RHS1;
+		this.LHSValue = parsedData.LHSValue;
+		this.RHSValue = parsedData.RHSValue;
+		this.RHS1Value = parsedData.RHS1Value;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.functionName = this.functionName;
+		toSend.LHS = this.LHS;
+		toSend.RHS = this.RHS;
+		toSend.RHS1 =  this.RHS1;
+		toSend.LHSValue = this.LHSValue;
+		toSend.RHSValue = this.RHSValue;
+		toSend.RHS1Value = this.RHS1Value;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityExpressionNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_FUNCTION';
+	this.functionName = 'SUBSTR';
+	this.output = '';
+	this.arg1Type = 'Literal';
+	this.arg2Type = 'Literal';
+	this.arg3Type = 'Literal';
+	this.arg1 = '';
+	this.arg2 = '';
+	this.arg3 = '';
+	this.args = new Array();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.functionName = parsedData.functionName;
+		this.output = parsedData.output;
+		this.arg1Type = parsedData.arg1Type;
+		this.arg2Type = parsedData.arg2Type;
+		this.arg3Type = parsedData.arg3Type;
+		this.arg1 = parsedData.arg1;
+		this.arg2 = parsedData.arg2;
+		this.arg3 = parsedData.arg3;
+		this.args = parsedData.args;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.functionName = this.functionName;
+		toSend.output = this.output;
+		toSend.arg1Type = this.arg1Type;
+		toSend.arg2Type = this.arg2Type;
+		toSend.arg3Type = this.arg3Type;
+		toSend.arg1 = this.arg1;
+		toSend.arg2 = this.arg2;
+		toSend.arg3 = this.arg3;
+		toSend.args = this.args;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityConnectNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'CONTINUE';
+	this.name = 'NODE_GOTO';
+	this.treeId = '';
+	this.nextNodeId = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.treeId = parsedData.treeId;
+		this.nextNodeId = parsedData.nextNodeId;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.treeId = this.treeId;
+		toSend.nextNodeId = this.nextNodeId;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityPlayAndCollectNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_PLAYCOLLECT';
+	this.isDropIvrOnCompletion = true;
+	this.sendMode = 'NONE'; // Picklist
+	this.connectionNode = 'ASSIST';
+	this.output = '';
+	this.maxRetries = '2';
+	this.repeat = '';
+	this.barge = false;
+	this.flex = false;
+	this.returnKey = 'NONE';
+	this.escapeKey = 'NONE';
+	this.firstDigitTimer = '';
+	this.interDigitTimer = '';
+	this.minDigit = '';
+	this.maxDigit = '';
+	this.ignoreDigits = '';
+	this.backspaceDigits = '';
+	this.connectParty = 'NONE';
+	this.playItems = new Array();
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.isDropIvrOnCompletion = parsedData.isDropIvrOnCompletion;
+		this.sendMode = parsedData.sendMode; 
+		this.connectionNode = parsedData.connectionNode;
+		this.output = parsedData.output;
+		this.maxRetries = parsedData.maxRetries;
+		this.repeat = parsedData.repeat;
+		this.barge = parsedData.barge;
+		this.flex = parsedData.flex;
+		this.returnKey = parsedData.returnKey;
+		this.escapeKey = parsedData.escapeKey;
+		this.firstDigitTimer = parsedData.firstDigitTimer;
+		this.interDigitTimer = parsedData.interDigitTimer;
+		this.minDigit = parsedData.minDigit;
+		this.maxDigit = parsedData.maxDigit;
+		this.ignoreDigits = parsedData.ignoreDigits;
+		this.backspaceDigits = parsedData.backspaceDigits;
+		this.connectParty = parsedData.connectParty;
+		this.playItems = parsedData.playItems;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.isDropIvrOnCompletion = this.isDropIvrOnCompletion;
+		toSend.sendMode = this.sendMode; 
+		toSend.connectionNode = this.connectionNode;
+		toSend.output = this.output;
+		toSend.maxRetries = this.maxRetries;
+		toSend.repeat = this.repeat;
+		toSend.barge = this.barge;
+		toSend.flex = this.flex;
+		toSend.returnKey = this.returnKey;
+		toSend.escapeKey = this.escapeKey;
+		toSend.firstDigitTimer = this.firstDigitTimer;
+		toSend.interDigitTimer = this.interDigitTimer;
+		toSend.minDigit = this.minDigit;
+		toSend.maxDigit = this.maxDigit;
+		toSend.ignoreDigits = this.ignoreDigits;
+		toSend.backspaceDigits = this.backspaceDigits;
+		toSend.connectParty = this.connectParty;
+		toSend.playItems = this.playItems;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityPlayNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_PLAY';
+	this.isDropIvrOnCompletion = true;
+	this.barge = false;
+	this.flex = false;
+	this.earlyMedia = false;
+	this.sendMode = 'NONE'; // Picklist
+	this.connectionNode = 'ASSIST';
+	this.repeat = '';
+	this.returnKey = 'NONE';
+	this.escapeKey = 'NONE';
+	this.connectParty = 'NONE';
+	this.broadcast = false;
+	this.broadcastDestination='';
+	this.playItems = new Array();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.isDropIvrOnCompletion = parsedData.isDropIvrOnCompletion;
+		this.sendMode = parsedData.sendMode;
+		this.connectionNode = parsedData.connectionNode;
+		this.earlyMedia = parsedData.earlyMedia;
+		this.repeat = parsedData.repeat;
+		this.barge = parsedData.barge;
+		this.flex = parsedData.flex;
+		this.returnKey = parsedData.returnKey;
+		this.escapeKey = parsedData.escapeKey;
+		this.connectParty = parsedData.connectParty;
+		this.broadcast = parsedData.broadcast;
+		this.broadcastDestination=parsedData.broadcastDestination;
+		this.playItems = parsedData.playItems;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.isDropIvrOnCompletion = this.isDropIvrOnCompletion;
+		toSend.sendMode = this.sendMode;
+		toSend.connectionNode = this.connectionNode;
+		toSend.earlyMedia = this.earlyMedia;
+		toSend.repeat = this.repeat;
+		toSend.barge = this.barge;
+		toSend.flex = this.flex;
+		toSend.returnKey = this.returnKey;
+		toSend.escapeKey = this.escapeKey;
+		toSend.connectParty = this.connectParty;
+		toSend.playItems = this.playItems;
+		toSend.broadcast = this.broadcast;
+		toSend.broadcastDestination = this.broadcastDestination;
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityPlaySpeechNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_PLAYSPEECH';
+	this.isDropIvrOnCompletion = true;
+	this.barge = false;
+	this.sendMode = 'NONE';
+	this.connectionNode = 'ASSIST';
+	this.collectedtext = '';
+	this.recognitionTime = '';
+	this.speechComplete = '';
+	this.speechLanguage = '';
+
+	this.isPlayRequired = "";
+	this.speechLanguage = "";
+	this.isRecordRequired = "";
+	this.recognitionTime = "";
+	this.speechComplete = "";
+	this.recordingPath = "";
+	this.recordingFilename = "";
+	this.recordingFormat = "";
+	this.recordingDuration = "";
+	this.recordingTerminationKey = "";
+	this.recordingPathType = "";
+	this.recordingFileType = "";
+
+	this.playItems = new Array();
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.isDropIvrOnCompletion = parsedData.isDropIvrOnCompletion;
+		this.sendMode = parsedData.sendMode;
+		this.connectionNode = parsedData.connectionNode;
+		this.barge = parsedData.barge;
+		this.collectedtext = parsedData.collectedtext;
+		this.recognitionTime = parsedData.recognitionTime;
+		this.speechComplete = parsedData.speechComplete;
+		this.playItems = parsedData.playItems;
+
+		this.isPlayRequired = parsedData.isPlayRequired;
+		this.isRecordRequired = parsedData.isRecordRequired;
+		this.speechLanguage = parsedData.speechLanguage;
+		this.recognitionTime = parsedData.recognitionTime;
+		this.speechComplete = parsedData.speechComplete;
+		this.recordingPath = parsedData.recordingPath;
+		this.recordingFilename = parsedData.recordingFilename;
+		this.recordingFormat = parsedData.recordingFormat;
+		this.recordingDuration = parsedData.recordingDuration;
+		this.recordingTerminationKey = parsedData.recordingTerminationKey;
+		this.recordingPathType = parsedData.recordingPathType;
+		this.recordingFileType = parsedData.recordingFileType;
+
+	}
+
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.isDropIvrOnCompletion = this.isDropIvrOnCompletion;
+		toSend.sendMode = this.sendMode;
+		toSend.connectionNode = this.connectionNode;
+		toSend.barge = this.barge;
+		toSend.collectedtext = this.collectedtext;
+		toSend.recognitionTime = this.recognitionTime;
+		toSend.speechComplete = this.speechComplete;
+		toSend.playItems = this.playItems;
+
+		toSend.isPlayRequired = this.isPlayRequired;
+		toSend.speechLanguage = this.speechLanguage;
+		toSend.isRecordRequired = this.isRecordRequired;
+		toSend.recognitionTime = this.recognitionTime;
+		toSend.speechComplete = this.speechComplete;
+		toSend.recordingPath = this.recordingPath;
+		toSend.recordingFilename = this.recordingFilename;
+		toSend.recordingFormat = this.recordingFormat;
+		toSend.recordingDuration = this.recordingDuration;
+		toSend.recordingTerminationKey = this.recordingTerminationKey;
+		toSend.recordingPathType = this.recordingPathType;
+		toSend.recordingFileType = this.recordingFileType;
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnitySoapNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_SOAP_QUERY';
+	this.portMethodName = '';
+	this.serviceClassName = '';
+	this.operation = '';
+	this.inputList = new Array();
+	this.outputList = new Array();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.portMethodName = parsedData.portMethodName;
+		this.serviceClassName = parsedData.serviceClassName;
+		this.operation = parsedData.operation;
+		this.inputList = parsedData.inputList;
+		this.outputList = parsedData.outputList;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.portMethodName = this.portMethodName;
+		toSend.serviceClassName = this.serviceClassName;
+		toSend.operation = this.operation;
+		toSend.inputList = this.inputList;
+		toSend.outputList = this.outputList;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnitySwitchNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_SWITCH';
+	this.variable = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.variable = parsedData.variable;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.variable = this.variable;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityRouteCallNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ROUTECALL';
+	this.sendMode = 'NONE'; // Picklist
+	this.connectionMode = 'REROUTING'; // Picklist
+	this.dropCallMode = 'RELEASE_CALL'; // Picklisrt
+	this.outboundAddress = '';
+	this.outbountGateWayPoolId = '';
+	this.outboundgatewayIdCheck = false;
+	this.directionOfConnection = 'FORWARD';
+	this.protocol='NONE';
+	this.dialoutMode = false;
+	this.parallelRinging = false;
+	this.serialRinging = false;
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.sendMode = parsedData.sendMode;
+		this.connectionMode = parsedData.connectionMode;
+		this.dropCallMode = parsedData.dropCallMode;
+		this.outboundAddress = parsedData.outboundAddress;
+		this.outbountGateWayPoolId= parsedData.outbountGateWayPoolId;
+		this.outboundgatewayIdCheck= parsedData.outboundgatewayIdCheck;
+		this.directionOfConnection = parsedData.directionOfConnection;
+		this.protocol=parsedData.protocol;
+		this.dialoutMode = parsedData.dialoutMode;
+		this.parallelRinging=parsedData.parallelRinging;
+		this.serialRinging=parsedData.serialRinging;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.sendMode = this.sendMode;
+		toSend.connectionMode = this.connectionMode 
+		toSend.dropCallMode = this.dropCallMode;
+		toSend.outboundAddress = this.outboundAddress;
+		toSend.outbountGateWayPoolId= this.outbountGateWayPoolId;
+		toSend.outboundgatewayIdCheck= this.outboundgatewayIdCheck;
+		toSend.directionOfConnection = this.directionOfConnection;
+		toSend.protocol=this.protocol;
+		toSend.dialoutMode = this.dialoutMode;
+		toSend.parallelRinging = this.parallelRinging;
+		toSend.serialRinging = this.serialRinging;
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityTerminateNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_TERMINATECALL';
+	this.dropCallMode = 'RELEASE_CALL'; // Picklist
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.dropCallMode = parsedData.dropCallMode;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.dropCallMode = this.dropCallMode;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityTimePatternNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'DB';
+	this.name = 'NODE_TIME_PATTERN';
+	this.smsValue = '';
+	this.patternId = '';
+	this.mode = Agnity.getUrlParam('operationMode');
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.smsValue = parsedData.smsValue;
+		this.patternId = parsedData.patternId;
+		this.mode = parsedData.mode;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.smsValue = this.smsValue;
+		toSend.patternId = this.patternId;
+		toSend.mode = this.mode;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityOriginPatternNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'DB';
+	this.name = 'NODE_ORIGIN_PATTERN';
+	this.smsValue = '';
+	this.patternId = '';
+	this.mode = Agnity.getUrlParam('operationMode');
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.smsValue = parsedData.smsValue;
+		this.patternId = parsedData.patternId;
+		this.mode = parsedData.patternId;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.smsValue = this.smsValue;
+		toSend.patternId = this.patternId;
+		toSend.mode = this.modeId;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityCreateConferenceNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_CREATE_CONF';
+	this.maxActiveSpeaker = '';
+	this.notifyActiveSpeaker = false;
+	this.notificationInterval = '';
+	this.destroyCriteria = '2';
+	this.conferenceID = '';
+	this.timer = '';
+	
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.maxActiveSpeaker = parsedData.maxActiveSpeaker;
+		this.notifyActiveSpeaker = parsedData.notifyActiveSpeaker;
+		this.notificationInterval = parsedData.notificationInterval;
+		this.destroyCriteria = parsedData.destroyCriteria;
+		this.conferenceID = parsedData.conferenceID;
+		this.timer = parsedData.timer;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.maxActiveSpeaker = this.maxActiveSpeaker;
+		toSend.notifyActiveSpeaker = this.notifyActiveSpeaker;
+		toSend.notificationInterval = this.notificationInterval;
+		toSend.destroyCriteria = this.destroyCriteria;
+		toSend.conferenceID = this.conferenceID;
+		toSend.timer = this.timer;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityJoinConferenceNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_JOIN_CONF';
+	this.conferenceID = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.conferenceID = parsedData.conferenceID;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.conferenceID = this.conferenceID;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityUnJoinConferenceNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_UNJOIN_CONF';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityDestroyConferenceNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_DESTROY_CONF';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.conferenceID = parsedData.conferenceID;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.conferenceID = this.conferenceID;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityRecordNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_RECORD';
+	this.playAnnBeforeRecording = false;
+	this.barge = false;
+	this.returnKey = 'NONE';
+	this.escapeKey = 'NONE';
+	this.recordingPathType = 'Literal';
+	this.recordingPath = '';
+	this.recordingFileType = 'Literal';
+	this.recordingFilename = '';
+	this.recordingFormat = '';
+	this.recordingDuration = '';
+	this.recordingTerminationKey = 'NONE';
+	this.playItems = new Array();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.playAnnBeforeRecording = parsedData.playAnnBeforeRecording;
+		this.barge = parsedData.barge;
+		this.returnKey = parsedData.returnKey;
+		this.escapeKey = parsedData.escapeKey;
+		this.recordingPathType = parsedData.recordingPathType;
+		this.recordingPath = parsedData.recordingPath;
+		this.recordingFileType = parsedData.recordingFileType;
+		this.recordingFilename = parsedData.recordingFilename;
+		this.recordingFormat = parsedData.recordingFormat;
+		this.recordingDuration = parsedData.recordingDuration;
+		this.recordingTerminationKey = parsedData.recordingTerminationKey;
+		this.playItems = parsedData.playItems;
+		
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.playAnnBeforeRecording = this.playAnnBeforeRecording;
+		toSend.barge = this.barge;
+		toSend.returnKey = this.returnKey;
+		toSend.escapeKey = this.escapeKey;
+		toSend.recordingPathType = this.recordingPathType;
+		toSend.recordingPath = this.recordingPath;
+		toSend.recordingFileType = this.recordingFileType;
+		toSend.recordingFilename = this.recordingFilename;
+		toSend.recordingFormat = this.recordingFormat;
+		toSend.recordingDuration = this.recordingDuration;
+		toSend.recordingTerminationKey = this.recordingTerminationKey;
+		toSend.playItems = this.playItems;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityStopMediaNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_STOP_MEDIA';
+	this.disconnectParty = 'NONE';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.disconnectParty = parsedData.disconnectParty;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.disconnectParty = this.disconnectParty;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityEventHandlerNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_EVENT_HANDLER';
+	this.handlerType = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.handlerType = parsedData.handlerType;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.handlerType = this.handlerType;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityCreateTimerNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_CREATE_TIMER';
+	this.timerName = '';
+	this.duration = '';
+	this.timeunit = '';
+		
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.timerName = parsedData.timerName;
+		this.duration = parsedData.duration;
+		this.timeunit = parsedData.timeunit;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.timerName = this.timerName;
+		toSend.duration = this.duration;
+		toSend.timeunit = this.timeunit;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityBlockPatternNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'DB';
+	this.name = 'NODE_BLOCKED_PHONE_LIST';
+	this.smsValue = '';
+	this.patternId = '';
+	this.mode = Agnity.getUrlParam('operationMode');
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.smsValue = parsedData.smsValue;
+		this.patternId = parsedData.patternId;
+		this.mode = parsedData.mode;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.smsValue = this.smsValue;
+		toSend.patternId = this.patternId;
+		toSend.mode = this.mode;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityCallAreaScreeningNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'DB';
+	this.name = 'NODE_CALL_AREA_SCREENING';
+	this.smsValue = '';
+	this.patternId = '';
+	this.mode = Agnity.getUrlParam('operationMode');
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.smsValue = parsedData.smsValue;
+		this.patternId = parsedData.patternId;
+		this.mode = parsedData.mode;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.smsValue = this.smsValue;
+		toSend.patternId = this.patternId;
+		toSend.mode = this.mode;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityAccountCodeNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ACCOUNT_CODE';
+	this.playAnnType = 'Literal';
+	this.playAnn = '';
+	this.invalidInputAnnType = 'Literal';
+	this.invalidInputAnn = '';
+	this.noInputAnnType = 'Literal';
+	this.noInputAnn = '';
+	this.digitPattern = '';
+	this.validPatternList = '';
+	this.validationType = '';
+	this.checkFixLength = '';
+	this.length = '';
+	this.retryAttempts = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.playAnnType = parsedData.playAnnType;
+		this.playAnn = parsedData.playAnn;
+		this.invalidInputAnnType = parsedData.invalidInputAnnType;
+		this.invalidInputAnn = parsedData.invalidInputAnn;
+		this.noInputAnnType = parsedData.noInputAnnType;
+		this.noInputAnn = parsedData.noInputAnn;
+		this.digitPattern = parsedData.digitPattern;
+		this.validPatternList = parsedData.validPatternList;
+		this.validationType = parsedData.validationType;
+		this.checkFixLength = parsedData.checkFixLength;
+		this.length = parsedData.length;
+		this.retryAttempts = parsedData.retryAttempts;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.playAnnType = this.playAnnType;
+		toSend.playAnn = this.playAnn;
+		toSend.invalidInputAnnType = this.invalidInputAnnType;
+		toSend.invalidInputAnn = this.invalidInputAnn;
+		toSend.noInputAnnType = this.noInputAnnType;
+		toSend.noInputAnn = this.noInputAnn;
+		toSend.digitPattern = this.digitPattern;
+		toSend.validPatternList = this.validPatternList;
+		toSend.validationType = this.validationType;
+		toSend.checkFixLength = this.checkFixLength;
+		toSend.length = this.length;
+		toSend.retryAttempts = this.retryAttempts;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityDialedPatternNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'DB';
+	this.name = 'NODE_DIALED_PATTERN';
+	this.smsValue = '';
+	this.patternId = '';
+	this.mode = Agnity.getUrlParam('operationMode');
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.smsValue = parsedData.smsValue;
+		this.patternId = parsedData.patternId;
+		this.mode = parsedData.mode;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.smsValue = this.smsValue;
+		toSend.patternId = this.patternId;
+		toSend.mode = this.mode;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityPercentageNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_PERCENTAGE';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityStopTimerNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_STOP_TIMER';
+	this.timerNameType = 'Literal';
+	this.timerName = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.timerNameType = parsedData.timerNameType;
+		this.timerName = parsedData.timerName;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.timerNameType = this.timerNameType;
+		toSend.timerName = this.timerName;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityCallHoldNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.callLeg='';
+	this.name = 'NODE_CALL_HOLD';
+	this.playMusicOnHold = false;
+	this.playAnnType = '';
+	this.playAnn = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.playMusicOnHold = parsedData.playMusicOnHold;
+		this.playAnnType = parsedData.playAnnType;
+		this.playAnn = parsedData.playAnn;
+		this.callLeg = parsedData.callLeg;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.playMusicOnHold = this.playMusicOnHold;
+		toSend.playAnnType = this.playAnnType;
+		toSend.playAnn = this.playAnn;
+		toSend.callLeg = this.callLeg;
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityDigitPatternNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_DIGIT_PATTERN';
+	this.patternType = '';
+	this.playAnnType = 'Literal';
+	this.playAnn = '';
+	this.invalidInputAnnType = 'Literal';
+	this.invalidInputAnn = '';
+	this.noInputAnnType = 'Literal';
+	this.noInputAnn = '';
+	this.digitPattern = '';
+	this.validPatternList = '';
+	this.retryAttempts = '';
+	this.patternId = '';
+	this.mode = Agnity.getUrlParam('operationMode');
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.patternType = parsedData.patternType;
+		this.playAnnType = parsedData.playAnnType;
+		this.playAnn = parsedData.playAnn;
+		this.invalidInputAnnType = parsedData.invalidInputAnnType;
+		this.invalidInputAnn = parsedData.invalidInputAnn;
+		this.noInputAnnType = parsedData.noInputAnnType;
+		this.noInputAnn = parsedData.noInputAnn;
+		this.digitPattern = parsedData.digitPattern;
+		this.validPatternList = parsedData.validPatternList;
+		this.retryAttempts = parsedData.retryAttempts;
+		this.patternId = parsedData.patternId;
+		this.mode = parsedData.mode;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.patternType = this.patternType;
+		toSend.playAnnType = this.playAnnType;
+		toSend.playAnn = this.playAnn;
+		toSend.invalidInputAnnType = this.invalidInputAnnType;
+		toSend.invalidInputAnn = this.invalidInputAnn;
+		toSend.noInputAnnType = this.noInputAnnType;
+		toSend.noInputAnn = this.noInputAnn;
+		toSend.digitPattern = this.digitPattern;
+		toSend.validPatternList = this.validPatternList;
+		toSend.retryAttempts = this.retryAttempts;
+		toSend.patternId = this.patternId;
+		toSend.mode = this.mode;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityFunctionBlockNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.name = 'NODE_FUNCTION_BLOCK';
+	this.nodeId = Agnity.nodeId();
+	this.functionBlockName = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.name = parsedData.name;
+		this.nodeId = parsedData.nodeId;
+		this.functionBlockName = parsedData.functionBlockName;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.name = this.name;
+		toSend.nodeId = this.nodeId;
+		toSend.functionBlockName = this.functionBlockName;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityTreeNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.name = 'NODE_TREE';
+	this.nodeId = Agnity.nodeId();
+	this.treeName = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.name = parsedData.name;
+		this.nodeId = parsedData.nodeId;
+		this.treeName = parsedData.treeName;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.name = this.name;
+		toSend.nodeId = this.nodeId;
+		toSend.treeName = this.treeName;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityProcessNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_PROCESS';
+	this.processName = '';
+	this.processNodeVariableMap = new Map();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.processName = parsedData.processName;
+		this.processNodeVariableMap = Agnity.convertObjectToMap(parsedData.processNodeVariableMap);
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.processName = this.processName;
+		toSend.processNodeVariableMap = Agnity.convertMapToObject(this.processNodeVariableMap);
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityProcessStartNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.versionId = '1.0';
+	this.type = 'JAVA';
+	this.name = 'NODE_PROCESS_START';
+	this.localVariableMap = new Map();
+	this.smsVariableMap = new Map();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.versionId = parsedData.versionId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.localVariableMap = Agnity.convertObjectToMap(parsedData.localVariableMap);
+		this.smsVariableMap = Agnity.convertObjectToMap(parsedData.smsVariableMap);
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.versionId = this.versionId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.localVariableMap = Agnity.convertMapToObject(this.localVariableMap);
+		toSend.smsVariableMap = Agnity.convertMapToObject(this.smsVariableMap);
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityReturnNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_RETURN';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityResyncCallNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_RESYNC_CALL';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityDialOutCallNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_DIALOUTCALL';
+	this.calledParty = '';
+	this.callingParty = '';
+	this.outboundAddress = '';
+	/*this.sendMode = 'NONE'; // Picklist
+	this.connectionMode = 'REROUTING'; // Picklist
+	this.dropCallMode = 'RELEASE_CALL'; // Picklisrt*/
+	/*this.directionOfConnection = 'FORWARD';*/
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.calledParty = parsedData.calledParty;
+	    this.callingParty = parsedData.callingParty;
+		this.outboundAddress = parsedData.outboundAddress;
+		/*this.sendMode = parsedData.sendMode;
+		this.connectionMode = parsedData.connectionMode;
+		this.dropCallMode = parsedData.dropCallMode;*/
+		/*this.directionOfConnection = parsedData.directionOfConnection;*/
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.calledParty =  this.calledParty;
+	    toSend.callingParty = this.callingParty;
+		toSend.outboundAddress = this.outboundAddress;
+		/*toSend.directionOfConnection = this.directionOfConnection;*/
+		/*toSend.sendMode = this.sendMode;
+		toSend.connectionMode = this.connectionMode;
+		toSend.dropCallMode = this.dropCallMode;*/
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityTableNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.tableName = '';
+	this.name = 'NODE_TABLE';
+	this.accountHierarchialType = "PROVIDER";
+	this.description = '';
+	this.apiName = '';
+	this.isSpsOnly = false;
+	this.isVersionEnabled = true;
+	this.isVersionkeyRequired = false;
+	this.manageColumnsMap = new Map();
+	this.manageIndexesMap = new Map();
+	this.manageConstraintsMap = new Map();
+	this.validationRules = new Array();
+	this.manageAuditMap = new Map();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		console.log(parsedData.manageColumnsMap);
+		this.nodeId = parsedData.nodeId;
+		this.tableName = parsedData.tableName;
+		this.name = parsedData.name;
+		this.accountHierarchialType = parsedData.accountHierarchialType;
+		this.description = parsedData.description;
+		this.apiName = parsedData.apiName;
+		this.isSpsOnly = parsedData.isSpsOnly;
+		this.isVersionEnabled = parsedData.isVersionEnabled;	
+		this.isVersionkeyRequired = parsedData.isVersionkeyRequired;
+		this.manageColumnsMap = Agnity.convertObjectToMap(parsedData.manageColumnsMap);
+		this.manageIndexesMap = Agnity.convertObjectToMap(parsedData.manageIndexesMap);
+		this.manageConstraintsMap = Agnity.convertObjectToMap(parsedData.manageConstraintsMap);
+		this.validationRules = parsedData.validationRules;
+		this.manageAuditMap = Agnity.convertObjectToMap(parsedData.manageAuditMap);
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.tableName = Agnity.getLabel(inUi, inCell);
+		toSend.name = this.name;
+		toSend.accountHierarchialType = this.accountHierarchialType;
+		toSend.description = this.description;
+		toSend.apiName = this.apiName;
+		toSend.isSpsOnly = this.isSpsOnly;
+		toSend.isVersionEnabled = this.isVersionEnabled;
+		toSend.isVersionkeyRequired = this.isVersionkeyRequired;
+		toSend.manageColumnsMap = Agnity.convertMapToObject(this.manageColumnsMap);
+		toSend.manageIndexesMap = Agnity.convertMapToObject(this.manageIndexesMap);
+		toSend.manageConstraintsMap = Agnity.convertMapToObject(this.manageConstraintsMap);
+		toSend.validationRules = this.validationRules;
+		toSend.manageAuditMap = Agnity.convertMapToObject(this.manageAuditMap);
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnitySequenceNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.name = 'NODE_SEQUENCE';
+	this.description = '';
+	this.startsWith = '';
+	this.incrementBy = '';
+	this.max = '';
+	this.maxVal = '';
+	this.min = '';
+	this.minVal = '';
+	this.cache = '';
+	this.cacheVal = '';
+	this.cycle = '';
+	this.order = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.name = parsedData.name;
+		this.description = parsedData.description;
+		this.startsWith = parsedData.startsWith;
+		this.incrementBy = parsedData.incrementBy;
+		this.max = parsedData.max;
+		this.maxVal = parsedData.maxVal;
+		this.min = parsedData.min;
+		this.minVal = parsedData.minVal;
+		this.cache = parsedData.cache;
+		this.cacheVal = parsedData.cacheVal
+		this.cycle = parsedData.cycle;
+		this.order = parsedData.order;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.name = this.name;
+		toSend.description = this.description;
+		toSend.startsWith = this.startsWith;
+		toSend.incrementBy = this.incrementBy;
+		toSend.max = this.max;
+		toSend.maxVal = this.maxVal;
+		toSend.min = this.min;
+		toSend.minVal = this.minVal;
+		toSend.cache = this.cache;
+		toSend.cacheVal = this.cacheVal;
+		toSend.cycle = this.cycle;
+		toSend.order = this.order;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityViewNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.name = 'NODE_VIEW';
+	this.description = '';
+	this.statement = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.name = parsedData.name;
+		this.description = parsedData.description;
+		this.statement = parsedData.statement;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.name = this.name;
+		toSend.description = this.description;
+		toSend.statement = this.statement;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityUserTypeNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.name = 'NODE_USER_TYPE';
+	this.description = '';
+	this.manageColumnTypes = new Map();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.name = parsedData.name;
+		this.description = parsedData.description;
+		this.manageColumnTypes = Agnity.convertObjectToMap(parsedData.manageColumnTypes);
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.name = this.name;
+		toSend.description = this.description;
+		toSend.manageColumnTypes = Agnity.convertMapToObject(this.manageColumnTypes);
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnitySendAlaramNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.name = 'NODE_SEND_ALARM';
+	this.type = 'JAVA';
+	this.description = '';
+	this.alarmcode = '';
+	this.severity = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.name = parsedData.name;
+		this.type = parsedData.type;
+		this.description = parsedData.description;
+		this.alarmcode = parsedData.alarmcode;
+		this.severity = parsedData.severity;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.name = this.name;
+		toSend.type = this.type;
+		toSend.description = this.description;
+		toSend.alarmcode = this.alarmcode;
+		toSend.severity = this.severity;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityEndExecutionNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.name = 'NODE_ENDEXECUTION';
+	this.type = 'JAVA';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.name = parsedData.name;
+		this.type = parsedData.type;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.name = this.name;
+		toSend.type = this.type;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnitySendSMSNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.name = 'NODE_TEXT_SMS';
+	this.type = 'JAVA';
+	this.smsAdaptorType = 'AGNITY';
+	this.phoneNumbertype = 'Literal';
+	this.phoneNumberList = '';
+	this.smsContent = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.name = parsedData.name;
+		this.type = parsedData.type;
+		this.smsAdaptorType = parsedData.smsAdaptorType;
+		this.phoneNumberList = parsedData.phoneNumberList;
+		this.smsContent = parsedData.smsContent;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.name = this.name;
+		toSend.type = this.type;
+		toSend.smsAdaptorType = this.smsAdaptorType;
+		toSend.phoneNumberList = this.phoneNumberList;
+		toSend.smsContent = this.smsContent;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnitySendEmailNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.name = 'NODE_EMAIL';
+	this.type = 'JAVA';
+	this.smtpHost = '';
+	this.password = '';
+	this.user = '';
+	this.from = '';
+	this.recipient = '';
+	this.subject = '';
+	this.body = '';
+	this.mimeContent = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.name = parsedData.name;
+		this.type = parsedData.type;
+		this.smtpHost = parsedData.smtpHost;
+		this.password = parsedData.password;
+		this.user = parsedData.user;
+		this.from = parsedData.from;
+		this.recipient = parsedData.recipient;
+		this.subject = parsedData.subject;
+		this.body = parsedData.body;
+		this.mimeContent = parsedData.mimeContent;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.name = this.name;
+		toSend.type = this.type;
+		toSend.smtpHost = this.smtpHost;
+		toSend.password = this.password;
+		toSend.user = this.user;
+		toSend.from = this.from;
+		toSend.recipient = this.recipient;
+		toSend.subject = this.subject;
+		toSend.body = this.body;
+		toSend.mimeContent = this.mimeContent;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityRouteEngineNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ROUTING_ENGINE';
+	this.planId = '';
+	this.reQualifier = 'RE';
+	this.advHandlerAll = false;
+	this.advHandlerPlay = false;
+	this.advHandlerPlayCollect = false;
+	this.advHandlerPlayDisconnect = false;
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.planId = parsedData.planId;
+		this.reQualifier = parsedData.reQualifier;
+		this.advHandlerAll = parsedData.advHandlerAll;
+		this.advHandlerPlay = parsedData.advHandlerPlay;
+		this.advHandlerPlayCollect = parsedData.advHandlerPlayCollect;
+		this.advHandlerPlayDisconnect = parsedData.advHandlerPlayDisconnect;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.planId = this.planId;
+		toSend.reQualifier = this.reQualifier;
+		toSend.advHandlerAll = this.advHandlerAll;
+		toSend.advHandlerPlay = this.advHandlerPlay;
+		toSend.advHandlerPlayCollect = this.advHandlerPlayCollect;
+		toSend.advHandlerPlayDisconnect = this.advHandlerPlayDisconnect;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+
+function AgnityREPlayNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ROUTE_PLAY';
+	this.reQualifier = 're';
+	this.connectionMode = 'REROUTING'; // Picklist
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.reQualifier = parsedData.reQualifier;
+		this.connectionMode = parsedData.connectionMode;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.reQualifier = this.reQualifier;
+		toSend.connectionMode = this.connectionMode;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityREPlayCollectNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ROUTE_PLAYCOLLECT';
+	this.reQualifier = 're';
+	this.repeat = ''; 
+	this.barge = false; 
+	this.flex = false; 
+	this.returnKey = 'NONE';
+	this.escapeKey = 'NONE'; 
+	this.firstDigitTimer = ''; 
+	this.extraDigitTimer = ''; 
+	this.interDigitCriticalTimer = ''; 
+	this.interDigitTimer = ''; 
+	this.minDigit = ''; 
+	this.maxDigit = ''; 
+	this.ignoreDigits = ''; 
+	this.backspaceDigits = ''; 
+	this.longDigitTimer = '';
+	this.connectionMode = 'REROUTING'; // Picklist
+	this.isDropIvrOnCompletion = true;
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.reQualifier = parsedData.reQualifier;
+		this.repeat =  parsedData.repeat;
+		this.barge = parsedData.barge; 
+		this.flex = parsedData.flex; 
+		this.returnKey = parsedData.returnKey;
+		this.escapeKey = parsedData.escapeKey; 
+		this.firstDigitTimer = parsedData.firstDigitTimer; 
+		this.extraDigitTimer = parsedData.extraDigitTimer; 
+		this.interDigitCriticalTimer = parsedData.interDigitCriticalTimer; 
+		this.interDigitTimer = parsedData.interDigitTimer; 
+		this.minDigit = parsedData.minDigit; 
+		this.maxDigit = parsedData.maxDigit; 
+		this.ignoreDigits = parsedData.ignoreDigits;
+		this.backspaceDigits = parsedData.backspaceDigits;
+		this.longDigitTimer = parsedData.longDigitTimer;
+		this.connectionMode = parsedData.connectionMode;
+		this.isDropIvrOnCompletion = parsedData.isDropIvrOnCompletion;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.reQualifier = this.reQualifier;
+		toSend.repeat =  this.repeat;
+		toSend.barge = this.barge; 
+		toSend.flex = this.flex; 
+		toSend.returnKey = this.returnKey;
+		toSend.escapeKey = this.escapeKey; 
+		toSend.firstDigitTimer = this.firstDigitTimer; 
+		toSend.extraDigitTimer = this.extraDigitTimer; 
+		toSend.interDigitCriticalTimer = this.interDigitCriticalTimer; 
+		toSend.interDigitTimer = this.interDigitTimer; 
+		toSend.minDigit = this.minDigit; 
+		toSend.maxDigit = this.maxDigit; 
+		toSend.ignoreDigits = this.ignoreDigits;
+		toSend.backspaceDigits = this.backspaceDigits;
+		toSend.longDigitTimer = this.longDigitTimer;
+		toSend.connectionMode = this.connectionMode;
+		toSend.isDropIvrOnCompletion = this.isDropIvrOnCompletion;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+
+function AgnityRERouteNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ROUTE';
+	this.reQualifier = 're';
+	this.sendMode = 'NONE'; // Picklist
+	this.connectionMode = 'REROUTING'; // Picklist
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.reQualifier = parsedData.reQualifier;
+		this.sendMode = parsedData.sendMode;
+		this.connectionMode = parsedData.connectionMode;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.reQualifier = this.reQualifier;
+		toSend.sendMode = this.sendMode;
+		toSend.connectionMode = this.connectionMode;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityApplyChargeNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_APPLY_CHARGING';
+	this.partyToCharge = '';
+	this.maxCallPeriodDuration = '';
+	this.releaseIfdurationExceeded = false;
+	this.tariffSwitchInterval = '';
+	this.audibleIndicator = false;
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.partyToCharge = parsedData.partyToCharge;
+		this.maxCallPeriodDuration = parsedData.maxCallPeriodDuration;
+		this.releaseIfdurationExceeded = parsedData.releaseIfdurationExceeded;
+		this.tariffSwitchInterval = parsedData.tariffSwitchInterval;
+		this.audibleIndicator = parsedData.audibleIndicator;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.partyToCharge = this.partyToCharge;
+		toSend.maxCallPeriodDuration = this.maxCallPeriodDuration;
+		toSend.releaseIfdurationExceeded = this.releaseIfdurationExceeded;
+		toSend.tariffSwitchInterval = this.tariffSwitchInterval;
+		toSend.audibleIndicator = this.audibleIndicator;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityACGNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ACG';
+	this.calledParty = '';
+	this.newtorkMgmtClass = '';
+	this.factor = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.calledParty = parsedData.calledParty;
+		this.newtorkMgmtClass = parsedData.newtorkMgmtClass;
+		this.factor = parsedData.factor;
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.calledParty = this.calledParty;
+		toSend.newtorkMgmtClass = this.newtorkMgmtClass;
+		toSend.factor = this.factor;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityTriggerRuleNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_TC_RULE';
+	this.appId = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.appId = parsedData.appId;
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.appId = this.appId;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityTuiNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_TUI';
+	this.tuiJson = '';
+	this.tuiKeyMap = new Map();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.tuiJson = parsedData.tuiJson;
+		this.tuiKeyMap = Agnity.convertObjectToMap(parsedData.tuiKeyMap);
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.tuiJson = this.tuiJson;
+		toSend.tuiKeyMap = Agnity.convertMapToObject(this.tuiKeyMap);
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityEnumNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ENUMSERVICE';
+	this.queryNum = '';
+	this.role = 'SENDER';
+	this.zone = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.role = parsedData.role;
+		this.queryNum = parsedData.queryNum;
+		this.zone = parsedData.zone;
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.role = this.role;
+		toSend.queryNum = this.queryNum;
+		toSend.zone = this.zone;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityAVPRNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_AVPR';
+	this.avpMap = new Map();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.avpMap = Agnity.convertObjectToMap(parsedData.avpMap);
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.avpMap = Agnity.convertMapToObject(this.avpMap);
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityAVPWNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_AVPW';
+	this.avpListHolder = '';
+	this.avpMap = new Map();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.avpListHolder = parsedData.avpListHolder;
+		this.avpMap = Agnity.convertObjectToMap(parsedData.avpMap);
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.avpListHolder = this.avpListHolder;
+		toSend.avpMap = Agnity.convertMapToObject(this.avpMap);
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityDiameterCCRNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_DIAMETER_CCR';
+	this.action = 'Direct Debiting';//picklist
+	this.realm = '';
+	this.avpListHolder = '';
+	this.isSessionBased = false;
+	this.sessionMode = "Initial"; //picklist
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.action = parsedData.action;
+		this.realm = parsedData.realm;
+		this.avpListHolder = parsedData.avpListHolder;
+		this.isSessionBased = parsedData.isSessionBased;
+		this.sessionMode = parsedData.sessionMode;
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.action = this.action;
+		toSend.realm = this.realm;
+		toSend.avpListHolder = this.avpListHolder;
+		toSend.isSessionBased = this.isSessionBased;
+		toSend.sessionMode = this.sessionMode;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityDiameterCCANodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_DIAMETER_CCA';
+	this.ccaReturnCode = '';
+	this.avpListHolder = '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.ccaReturnCode = parsedData.ccaReturnCode;
+		this.avpListHolder = parsedData.avpListHolder;
+	}
+
+	this.getAgnityData = function()
+	{		
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.ccaReturnCode = this.ccaReturnCode;
+		toSend.avpListHolder = this.avpListHolder;
+		
+		return JSON.stringify(toSend);
+	}
+}	
+function AgnitySipHeaderNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_SIP_HEADER';
+	this.sipHeaders = new Array();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.sipHeaders=parsedData.sipHeaders;
+		
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.sipHeaders=this.sipHeaders;
+		
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityCheckPointData(inUi , inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.name = 'NODE_CHECKPOINT';
+	this.type = 'JAVA';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		
+		this.nodeId = parsedData.nodeId;
+		this.name = parsedData.name;
+		this.type = parsedData.type;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.name = this.name;
+		toSend.type = this.type;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+
+function AgnitySmppNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_SMPP';
+	this.smpp = new Array();
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.destPh = parsedData.destPh;
+		this.srcPh = parsedData.srcPh;
+		this.shortMsg = parsedData.shortMsg;
+		this.name = parsedData.name;
+		
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.destPh = this.destPh;
+		toSend.srcPh = this.srcPh;
+		toSend.shortMsg = this.shortMsg;
+		toSend.name = this.name;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+
+function AgnityGdiNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_GDI';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.recieverId  = parsedData.recieverId;
+		this.dialledNumber = parsedData.dialledNumber;
+		this.callingNumber = parsedData.callingNumber;
+		this.name = parsedData.name;
+		
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.recieverId = this.recieverId;
+		toSend.dialledNumber = this.dialledNumber;
+		toSend.callingNumber = this.callingNumber;
+		toSend.name = this.name;
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityDisconnectLegNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.disconnectLeg= '';
+	this.name = 'NODE_DISCONNECTLEG';
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+	   	this.disconnectLeg=parsedData.disconnectLeg;
+		this.name = parsedData.name;
+
+	}
+
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+
+		toSend.nodeId = this.nodeId;
+	    toSend.disconnectLeg= this.disconnectLeg;
+		toSend.name = this.name;
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityForceCallCleanupNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_FORCE_CALL_CLEANUP';
+	this.appSessionId = '';
+	this.appId='';
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+	    this.appSessionId= parsedData.appSessionId;
+	    this.appId=parsedData.appId;
+		this.name = parsedData.name;
+		
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+	    toSend.appSessionId =this.appSessionId;
+	    toSend.appId= this.appId;
+		toSend.name = this.name;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityServiceChainingNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_SERVICE_CHAINING';
+	this.nextServiceApplicationId = '';
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+	    this.nextServiceApplicationId= parsedData.nextServiceApplicationId;
+		this.name = parsedData.name;
+		
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+	    toSend.nextServiceApplicationId =this.nextServiceApplicationId;
+		toSend.name = this.name;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityEchoDataNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ECHO';
+	this.output = '';
+	this.arg1='';
+	
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.output=parsedData.output;
+		this.arg1=parsedData.arg1;
+		
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.output=this.output;
+		toSend.arg1=this.arg1;
+		
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityCCBNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_CCB';
+	this.callBarringFunction ='CHECK_AND_RESERVE_COUNT';
+	this.numberType='';
+	this.groupId = '';
+	this.number ='';
+	this.groupLimit = '';
+	this.numberLimit = '';
+	this.callLimit = '';
+	this.checkEmail = false;
+	this.emailContent = '';
+	this.emailSubject = '';
+	this.emailRecipients='';
+	this.emailThreshold= '';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.callBarringFunction = parsedData.callBarringFunction;
+		this.numberType= parsedData.numberType;
+		this.callLimit= parsedData.callLimit;
+		this.groupId = parsedData.groupId;
+		this.number = parsedData.number;
+		this.groupLimit = parsedData.groupLimit;
+		this.numberLimit = parsedData.numberLimit;
+		this.checkEmail = parsedData.checkEmail;
+	    this.emailContent = parsedData.emailContent;
+	    this.emailSubject = parsedData.emailSubject;
+	    this.emailRecipients=parsedData.emailRecipients;
+	    this.emailThreshold=parsedData.emailThreshold;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.numberType= this.numberType;
+		toSend.callLimit = this.callLimit;
+		toSend.callBarringFunction = this.callBarringFunction;
+		toSend.groupId = this.groupId;
+		toSend.number = this.number;
+		toSend.groupLimit = this.groupLimit;
+		toSend.numberLimit = this.numberLimit;
+		toSend.checkEmail = this.checkEmail;
+		toSend.emailContent = this.emailContent;
+		toSend.emailSubject = this.emailSubject;
+		toSend.emailRecipients=this.emailRecipients;
+		toSend.emailThreshold=this.emailThreshold;
+		return JSON.stringify(toSend);
+	}
+}
+
+
+function AgnityCallQueuingNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_CALL_QUEUING';
+	this.cqOperation = 'INIT';
+	this.tfNumber='';
+	this.activeCallsLimit = '';
+	this.queueTimeoutAnn='';
+	this.queueTimeoutAnnEnabled='';
+	this.normalQueueSize='';
+	this.normalQueueTimeout='';
+	this.normalQueueAnn='';
+	this.queueOverflowAnnEnabled='';
+	this.normalQueueOverflowAnn='';
+	this.priorityQueueSize='';
+	this.priorityQueueTimeout='';
+	this.priorityQueuePIN='';
+	this.priorityQueuePINAnn='';
+	this.priorityQueueAnn='';
+	this.priorityQueueOverflowAnn='';
+	this.incorrectPINAnn = '';
+	this.moveToPriorityAnn ='';
+	this.maxRetriesFailedAnn = '';
+	this.priorityPINMaxRetries = '';
+	this.priorityQueue = '';
+	this.priorityQueueEnabled='';
+	this.enableQueuing='';
+	this.initialAnnEnabled='';
+	this.initialAnn='';
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.cqOperation = parsedData.cqOperation;
+		this.tfNumber=parsedData.tfNumber;
+		this.activeCallsLimit = parsedData.activeCallsLimit;
+		this.queueTimeoutAnnEnabled = parsedData.queueTimeoutAnnEnabled;
+		this.queueTimeoutAnn = parsedData.queueTimeoutAnn;
+		this.normalQueueSize = parsedData.normalQueueSize;
+		this.normalQueueTimeout = parsedData.normalQueueTimeout;
+		this.normalQueueAnn = parsedData.normalQueueAnn;
+		this.priorityQueuePIN = parsedData.priorityQueuePIN;
+		this.priorityQueuePINAnn = parsedData.priorityQueuePINAnn;
+		this.queueOverflowAnnEnabled=parsedData.queueOverflowAnnEnabled;
+		this.normalQueueOverflowAnn = parsedData.normalQueueOverflowAnn;
+		this.priorityQueueSize = parsedData.priorityQueueSize;
+		this.priorityQueueTimeout = parsedData.priorityQueueTimeout;
+		this.priorityQueueAnn = parsedData.priorityQueueAnn;
+		this.priorityQueueOverflowAnn = parsedData.priorityQueueOverflowAnn;
+		this.incorrectPINAnn = parsedData.incorrectPINAnn;
+		this.moveToPriorityAnn = parsedData.moveToPriorityAnn;
+		this.maxRetriesFailedAnn = parsedData.maxRetriesFailedAnn;
+		this.priorityPINMaxRetries = parsedData.priorityPINMaxRetries;
+		this.priorityQueue = parsedData.priorityQueue;
+		this.priorityQueueEnabled=parsedData.priorityQueueEnabled;
+		this.enableQueuing=parsedData.enableQueuing;
+		this.initialAnnEnabled=parsedData.initialAnnEnabled;
+		this.initialAnn=parsedData.initialAnn;
+
+	}
+
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+
+		toSend.cqOperation = this.cqOperation;
+		toSend.tfNumber = this.tfNumber;
+		toSend.activeCallsLimit = this.activeCallsLimit;
+		toSend.queueTimeoutAnnEnabled = this.queueTimeoutAnnEnabled;
+		toSend.queueTimeoutAnn = this.queueTimeoutAnn;
+		toSend.normalQueueSize = this.normalQueueSize;
+		toSend.normalQueueTimeout = this.normalQueueTimeout;
+		toSend.normalQueueAnn = this.normalQueueAnn;
+		toSend.queueOverflowAnnEnabled=this.queueOverflowAnnEnabled;
+		toSend.normalQueueOverflowAnn = this.normalQueueOverflowAnn;
+		toSend.priorityQueuePIN = this.priorityQueuePIN;
+		toSend.priorityQueuePINAnn = this.priorityQueuePINAnn;
+		toSend.priorityQueueSize = this.priorityQueueSize;
+		toSend.priorityQueueTimeout = this.priorityQueueTimeout;
+		toSend.priorityQueueAnn = this.priorityQueueAnn;
+		toSend.priorityQueueOverflowAnn = this.priorityQueueOverflowAnn;
+		toSend.incorrectPINAnn = this.incorrectPINAnn;
+		toSend.moveToPriorityAnn = this.moveToPriorityAnn;
+		toSend.maxRetriesFailedAnn = this.maxRetriesFailedAnn;
+		toSend.priorityPINMaxRetries = this.priorityPINMaxRetries;
+		toSend.priorityQueue = this.priorityQueue;
+		toSend.priorityQueueEnabled = this.priorityQueueEnabled;
+		toSend.enableQueuing=this.enableQueuing;
+		toSend.initialAnnEnabled=this.initialAnnEnabled;
+		toSend.initialAnn=this.initialAnn;
+		return JSON.stringify(toSend);
+	}
+}
+
+
+function AgnityATINodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_ATI';
+	this.currLocation='';
+	this.msisdn='';
+	this.domainType='';
+	this.gsmScfAddress='';
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.currLocation=parsedData.currLocation;
+	    this.msisdn=parsedData.msisdn;
+	    this.domainType=parsedData.domainType;
+	    this.gsmScfAddress=parsedData.gsmScfAddress;
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.currLocation= this.currLocation;
+		toSend.msisdn = this.msisdn;
+		toSend.domainType=this.domainType;
+		toSend.gsmScfAddress=this.gsmScfAddress;
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityUDRNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_UDR';
+	this.currLocation='DoNotNeedInitiateActiveLocationRetrieval';
+	this.msisdn='';
+	this.destinationRealm='';
+	
+	
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.currLocation=parsedData.currLocation;
+	    this.msisdn=parsedData.msisdn;
+	    this.destinationRealm=parsedData.destinationRealm;
+	
+	}
+	
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.currLocation= this.currLocation;
+		toSend.msisdn = this.msisdn;
+		toSend.destinationRealm =this.destinationRealm;
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityInitiateSs7CallNodeData(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_INITIATE_SS7_CALL';
+
+	this.protocol = '';
+	this.messageName = '';
+	this.routingIndicatorCalled = '';
+	this.pointCodeIndicatorCalled = '';
+	this.pointCodeCalled = '';
+	this.subsystemNoIndicatorCalled = '';
+	this.subsystemNumberCalled = '';
+	this.globalTitleIndicatorCalled = '';
+	this.nationalUseCalled = '';
+	this.translationTypeCalled = '';
+	this.encodingSchemeCalled = '';
+	this.natureOfAddressIndicatorCalled = '';
+	this.numberingPlanCalled = '';
+	this.gtDigitsCalled = '';
+	this.routingIndicatorCalling = '';
+	this.pointCodeIndicatorCalling = '';
+	this.pointCodeCalling = '';
+	this.subsystemNoIndicatorCalling = '';
+	this.subsystemNumberCalling = '';
+	this.globalTitleIndicatorCalling = '';
+	this.nationalUseCalling = '';
+	this.translationTypeCalling = '';
+	this.encodingSchemeCalling = '';
+	this.natureOfAddressIndicatorCalling = '';
+	this.numberingPlanCalling = '';
+	this.gtDigitsCalling = '';
+
+	this.messageParameters = new Array();
+
+	this.parameterMap = new Array();
+
+	this.sccpCallingPartyInfo = true;
+	this.sccpCalledPartyInfo = true;
+
+	this.protocolVersion = "";
+	this.appContextIdentifier = "";
+	this.appContextName = "";
+	this.userInformationIdentifier = "";
+	this.userInformation = "";
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+
+		this.protocol = parsedData.protocol;
+		this.messageName = parsedData.messageName;
+		this.routingIndicatorCalled = parsedData.routingIndicatorCalled;
+		this.pointCodeIndicatorCalled = parsedData.pointCodeIndicatorCalled;
+		this.pointCodeCalled = parsedData.pointCodeCalled;
+		this.subsystemNoIndicatorCalled = parsedData.subsystemNoIndicatorCalled;
+		this.subsystemNumberCalled = parsedData.subsystemNumberCalled;
+		this.globalTitleIndicatorCalled = parsedData.globalTitleIndicatorCalled;
+		this.nationalUseCalled = parsedData.nationalUseCalled;
+		this.translationTypeCalled = parsedData.translationTypeCalled;
+		this.encodingSchemeCalled = parsedData.encodingSchemeCalled;
+		this.natureOfAddressIndicatorCalled = parsedData.natureOfAddressIndicatorCalled;
+		this.numberingPlanCalled = parsedData.numberingPlanCalled;
+		this.gtDigitsCalled = parsedData.gtDigitsCalled;
+		this.routingIndicatorCalling = parsedData.routingIndicatorCalling;
+		this.pointCodeIndicatorCalling = parsedData.pointCodeIndicatorCalling;
+		this.pointCodeCalling = parsedData.pointCodeCalling;
+		this.subsystemNoIndicatorCalling = parsedData.subsystemNoIndicatorCalling;
+		this.subsystemNumberCalling = parsedData.subsystemNumberCalling;
+		this.globalTitleIndicatorCalling = parsedData.globalTitleIndicatorCalling;
+		this.nationalUseCalling = parsedData.nationalUseCalling;
+		this.translationTypeCalling = parsedData.translationTypeCalling;
+		this.encodingSchemeCalling = parsedData.encodingSchemeCalling;
+		this.natureOfAddressIndicatorCalling = parsedData.natureOfAddressIndicatorCalling;
+		this.numberingPlanCalling = parsedData.numberingPlanCalling;
+		this.gtDigitsCalling = parsedData.gtDigitsCalling;
+		this.messageParameters = parsedData.messageParameters;
+		this.sccpCallingPartyInfo = parsedData.sccpCallingPartyInfo;
+		this.sccpCalledPartyInfo = parsedData.sccpCalledPartyInfo;
+		this.parameterMap = parsedData.parameterMap;
+
+		this.protocolVersion = parsedData.protocolVersion;
+		this.appContextIdentifier = parsedData.appContextIdentifier;
+		this.appContextName = parsedData.appContextName;
+		this.userInformationIdentifier = parsedData.userInformationIdentifier;
+		this.userInformation = parsedData.userInformation;
+
+
+	}
+
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+
+		toSend.protocol = this.protocol;
+		toSend.messageName = this.messageName;
+		toSend.routingIndicatorCalled = this.routingIndicatorCalled;
+		toSend.pointCodeIndicatorCalled = this.pointCodeIndicatorCalled;
+		toSend.pointCodeCalled = this.pointCodeCalled;
+		toSend.subsystemNoIndicatorCalled = this.subsystemNoIndicatorCalled;
+		toSend.subsystemNumberCalled = this.subsystemNumberCalled;
+		toSend.globalTitleIndicatorCalled = this.globalTitleIndicatorCalled;
+		toSend.nationalUseCalled = this.nationalUseCalled;
+		toSend.translationTypeCalled = this.translationTypeCalled;
+		toSend.encodingSchemeCalled = this.encodingSchemeCalled;
+		toSend.natureOfAddressIndicatorCalled = this.natureOfAddressIndicatorCalled;
+		toSend.numberingPlanCalled = this.numberingPlanCalled;
+		toSend.gtDigitsCalled = this.gtDigitsCalled;
+		toSend.routingIndicatorCalling = this.routingIndicatorCalling;
+		toSend.pointCodeIndicatorCalling = this.pointCodeIndicatorCalling;
+		toSend.pointCodeCalling = this.pointCodeCalling;
+		toSend.subsystemNoIndicatorCalling = this.subsystemNoIndicatorCalling;
+		toSend.subsystemNumberCalling = this.subsystemNumberCalling;
+		toSend.globalTitleIndicatorCalling = this.globalTitleIndicatorCalling;
+		toSend.nationalUseCalling = this.nationalUseCalling;
+		toSend.translationTypeCalling = this.translationTypeCalling;
+		toSend.encodingSchemeCalling = this.encodingSchemeCalling;
+		toSend.natureOfAddressIndicatorCalling = this.natureOfAddressIndicatorCalling;
+		toSend.numberingPlanCalling = this.numberingPlanCalling;
+		toSend.gtDigitsCalling = this.gtDigitsCalling;
+		toSend.messageParameters = this.messageParameters;
+		toSend.sccpCallingPartyInfo = this.sccpCallingPartyInfo;
+		toSend.sccpCalledPartyInfo = this.sccpCalledPartyInfo;
+		toSend.parameterMap = this.parameterMap;
+		toSend.protocolVersion = this.protocolVersion;
+		toSend.appContextIdentifier = this.appContextIdentifier;
+		toSend.appContextName = this.appContextName;
+		toSend.userInformationIdentifier = this.userInformationIdentifier;
+		toSend.userInformation = this.userInformation;
+
+
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnitySettingsPasswdPolicy()
+{
+	this.policyId=0;
+	this.policyName='';
+	this.maxFailAttempts='';
+	this.passExpDays='';
+	this.minLength='';
+	this.minDigits='';
+	this.minSplChar='';
+	this.minUpperChar='';
+	this.minLowerChar='';
+	this.numMultLogin='';
+	this.numOldPass='';
+	this.minReuseDays='';
+	this.suspendFirstLogin='';
+	this.suspendInactiveAccount='';
+}
+
+function AgnitySettingsData(accessibleDomainList)
+{
+	this.id = 0;
+	this.loginId = '';
+	this.password = '';
+	this.confirmPassword = '';
+	this.name = '';
+	this.status = '';
+	this.adminUser = false;
+	this.accessAllDomains = false;
+	this.createdOn = '';
+	this.lastlogin= '';
+	this.policyId= 0;
+	this.accessibleDomainList = accessibleDomainList;
+}
+
+function AgnitySearchData()
+{
+	this.searchKey = '';
+}
+
+function AgnityPegCount(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_PEG_COUNT';
+	this.staticKey = '';
+	this.pegCountId = '';
+	this.incrementByValue = '';
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.staticKey= parsedData.staticKey;
+		this.pegCountId= parsedData.pegCountId;
+		this.incrementByValue= parsedData.incrementByValue;
+		this.name = parsedData.name;
+
+	}
+
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.staticKey= this.staticKey;
+		toSend.pegCountId= this.pegCountId;
+		toSend.incrementByValue= this.incrementByValue;
+		toSend.name = this.name;
+		return JSON.stringify(toSend);
+	}
+}
+function AgnityHttpRaData(inUi, inCell)
+{
+	this.url = '';
+	this.method ='';
+	this.content ='';
+	this.contentType ='';	
+	this.reqTimeout ='';
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_HTTP_RA';
+	this.outHttpResp ='';
+	this.outHttpContent ='';
+	this.incrementByValue = '';
+	this.headers = new Array();
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+		this.url = parsedData.url;
+		this.method =parsedData.method;
+		this.content =parsedData.content;
+		this.contentType =parsedData.contentType;		
+		this.reqTimeout =parsedData.reqTimeout;
+		this.headers = parsedData.headers;
+		this.outHttpResp = parsedData.outHttpResp;
+		this.outHttpContent = parsedData.outHttpContent;
+	}
+
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.url = this.url;
+		toSend.method = this.method;
+		toSend.content = this.content;
+		toSend.contentType = this.contentType;
+		toSend.reqTimeout = this.reqTimeout;
+		toSend.headers = this.headers;
+		toSend.outHttpResp = this.outHttpResp;
+		toSend.outHttpContent = this.outHttpContent;
+		return JSON.stringify(toSend);
+	}
+}
+
+function AgnityApplicationCounter(inUi, inCell)
+{
+	this.ui = inUi;
+	this.cell = inCell;
+	this.nodeId = Agnity.nodeId();
+	this.type = 'JAVA';
+	this.name = 'NODE_MEASUREMENT_SET';
+
+	this.measurementSetNames = '';
+	this.accumulationInterval = '';
+	this.pegCounts = [];
+
+	this.setupAgnityData = function(agnityDataStr)
+	{
+		var parsedData = JSON.parse(agnityDataStr);
+
+		this.nodeId = parsedData.nodeId;
+		this.type = parsedData.type;
+		this.name = parsedData.name;
+
+		this.measurementSetNames = parsedData.measurementSetNames;
+		this.accumulationInterval = parsedData.accumulationInterval;
+		this.pegCounts = parsedData.pegCounts;
+
+	}
+
+	this.getAgnityData = function()
+	{
+		var toSend = {};
+
+		toSend.nodeId = this.nodeId;
+		toSend.type = this.type;
+		toSend.name = this.name;
+		toSend.measurementSetNames = this.measurementSetNames;
+		toSend.accumulationInterval = this.accumulationInterval;
+		toSend.pegCounts = this.pegCounts;
+		return JSON.stringify(toSend);
+	}
+}
+
+Agnity.getLoggingNodeData = function(ui, cell)
+{
+    return Agnity.setupAgnityNodeData(new AgnityLoggingNodeData(ui, cell));
+}
+
+/* Unused 
+function AgnityLoggingData() 
+{
+	this.loggingMode = '';
+	this.logStatement = '';
+}
+
+function AgnityLoggingQueryInput()
+{
+	this.loggingMode = '';
+	this.logStatement = '';
+}*/
+
+function AgnityLoggingNodeData(inUi, inCell)
+{
+    this.ui = inUi;
+    this.cell = inCell;
+    this.nodeId = Agnity.nodeId();
+    this.type = 'JAVA';
+    this.name = 'NODE_LOGGING';
+    this.loggingMode='';
+    this.logStatement='';
+    
+    this.setupAgnityData = function(agnityDataStr)
+    {
+        let parsedData = JSON.parse(agnityDataStr);
+
+        this.nodeId = parsedData.nodeId;
+        this.type = parsedData.type;
+        this.name = parsedData.name;
+        this.loggingMode=parsedData.loggingMode;
+        this.logStatement=parsedData.logStatement;
+    }
+    
+    this.getAgnityData = function()
+    {
+        let toSend = {};
+        
+        toSend.nodeId = this.nodeId;
+        toSend.type = this.type;
+        toSend.name = this.name;
+        toSend.loggingMode= this.loggingMode;
+        toSend.logStatement = this.logStatement;
+        return JSON.stringify(toSend);
+    }
+}
