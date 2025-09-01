@@ -1,0 +1,1641 @@
+div.SharsbItem {
+	height: 44px;
+	width: 180px;
+	border-radius: 10px;
+	margin-bottom: 5px;
+	background: linear-gradient(#C1D4F3, #e4ebf7);
+}
+
+div.SharsbItem svg {
+	background-color: #5d95dc;
+	border-radius: 5px;
+}
+
+div.SharsbItem span {
+	color: dimgrey;
+	font-weight: bold;
+}
+
+.imgDiv {
+	height: 9px;
+	font-size: 9px;
+	margin-bottom: 5px;
+}
+
+.addBtnDiv {
+	width: 55px;
+	margin-left: 10px;
+}
+
+.buttonsDiv {
+	position: absolute;
+	left: 30px;
+	right: 30px;
+	text-align: right;
+	bottom: 30px;
+	height: 40px;
+}
+
+.removeBtn {
+	position: absolute;
+	margin: 0px;
+	right: 0px;
+	height: 16px;
+	width: 9px;
+	cursor: pointer;
+}
+
+.formatTabButtonHolder {
+	overflow: hidden;
+	margin-bottom: 5px;
+}
+
+.formatTabButtonHolder button, .StyleTabButtonHolder div {
+	border-width: 0px;
+	border-style: solid;
+	border-color: rgb(195, 195, 195);
+	border-image: initial;
+	text-align: center;
+	font-weight: bold;
+	overflow: hidden;
+	display: inline-block;
+	height: 35px;
+	line-height: 35px;
+	width: 50%;
+	cursor: pointer;
+	transition: 0.3s;
+	color: #fff;
+	font-size: 12px;
+	vertical-align: middle;
+	background-color: #495356;
+}
+
+.AgnityFormatContainer {
+	background-color: whiteSmoke;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	font-size: 12px;
+	background: #ffffff;
+	overflow: hidden;
+	position: absolute;
+	overflow: auto;
+}
+
+.formatTabButtonHolder button.active, .StyleTabButtonHolder div.active {
+	background-color: #85ba49;
+}
+
+.formatTabButtonHolder {
+	flex: none;
+}
+
+.formatTabContentHolder {
+	flex: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.formatTabOutlineHolder {
+	flex: none;
+	height: 180px;
+}
+
+.AgnityFormatContainer {
+	display: flex;
+	flex-flow: column nowrap;
+}
+
+.AgnityFormatContainer .addView {
+	position: relative;
+}
+
+.StyleTabButtonHolder {
+	white-space: nowrap;
+}
+
+.StyleTabContentHolder {
+	position: relative;
+	white-space: nowrap;
+	text-align: left;
+	color: rgb(112, 112, 112);
+	cursor: default;
+}
+
+.labelDiv {
+	border: 1px solid #c0c0c0;
+	border-width: 0px 0px 1px 0px;
+	text-align: center;
+	font-weight: bold;
+	overflow: hidden;
+	display: inline-block;
+	padding-top: 8px;
+	height: 25px;
+	width: 100%;
+}
+
+.propertyTabDiv {
+	text-align: left;
+	color: rgb(112, 112, 112);
+	overflow: hidden;
+	margin: 0px 10px 0px 10px;
+}
+
+.formatPanelDiv {
+	white-space: nowrap;
+	text-align: left;
+	color: rgb(112, 112, 112);
+	cursor: default;
+}
+
+.AgnityFieldRowButtonClass {
+	width: 60%;
+	padding: 3px;
+}
+
+.AgnityFieldRow {
+	width: 100%;
+	margin: 10px 0px 10px 0px;
+	text-align: center;
+}
+
+.AgnityRadioButtonFieldRow {
+	width: 100%;
+	margin: 10px 0px 0px 20px;
+	text-align: left;
+}
+
+.AgnityFieldRow::after, .AgnityFieldRowLabelHolder::after, .AgnitySelectFieldRowFieldHolder::after, 
+.AgnityFieldRowFieldHolder::after, .AgnityCheckboxRowFieldHolder::after, .AgnityRadioButtonFieldRow::after
+{
+	content: "";
+	clear: both;
+	display: table;
+}
+
+.AgnityFieldRowLabelHolder {
+	width: 40%;
+	float: left;
+	margin: 0px 15px 0px 0px;
+}
+
+.AgnityFieldRowFieldHolder, .AgnityCheckboxRowFieldHolder {
+	width: 50%;
+	float: left;
+	margin: 0px 0px 0px 5px;
+}
+
+.AgnitySelectFieldRowFieldHolder {
+	width : 100%;
+	float : left;
+	margin : 0px 0px 0px 5px;
+}
+
+.AgnityCheckboxRowFieldHolder {
+	text-align: left;
+}
+
+.AgnityFieldRowLabelClass {
+	width: 100%;
+	text-align: right;
+	padding: 5px;
+	display: inline-block;
+	white-space: normal;
+}
+
+.AgnityTextFieldClass {
+	display: inline-block;
+	width: 100%;
+	padding: 5px;
+	border: 1px solid #c0c0c0;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.AgnityFileRowFieldClass {
+	display: inline-block;
+	width: 100%;
+	padding: 5px;
+}
+.AgnityTextSearchFieldClass {
+	display: inline-block;
+	width: 70%;
+	padding: 5px;
+	border: 1px solid #c0c0c0;
+	border-radius: 4px;
+	box-sizing: border-box;
+	float : left;
+}
+
+.AgnityRangeTextFieldClass {
+	display: inline-block;
+	width: 50%;
+	padding: 5px;
+	border: 1px solid #c0c0c0;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.AgnityDropdownFieldClass {
+	display: inline-block;
+	width: 100%;
+	padding: 5px;
+	border: 1px solid #c0c0c0;
+	border-radius: 4px;
+}
+
+.AgnityLogo img {
+	margin: 15px 10px;
+	width: 75px;
+}
+
+.AgnityDialogTextField, .AgnityDialogRangeField,
+	.AgnityDialogDropdownField, .AgnityDbDialogTextField,
+	.AgnityDbDialogValueTextField, .AgnityDbDialogVarTextField {
+	padding: 5px;
+	border: 1px solid #c0c0c0;
+	border-radius: 4px;
+	margin-left: 3px;
+	margin-bottom: 5px;
+}
+
+.AgnityDbDialogVarTextField {
+	width: 90%;
+}
+
+.AgnityDbDialogValueTextField {
+	width: 85%;
+}
+
+.AgnityDbDialogTextField {
+	width: 80%;
+}
+
+.AgnityPropDiv label {
+	width: 21%;
+	display: inline-block;
+}
+
+.AgnityDialogTextField {
+	width: 22%;
+	margin-left: 10px;
+	margin-right: 15px;
+}
+
+.AgnityDialogDropdownField {
+	width: 23%;
+	margin-left: 10px;
+	margin-right: 19px;
+}
+
+.AgnityDialogRangeField {
+	width: 9%;
+	margin-left: 10px;
+}
+
+.agnityLastRowDiv {
+	text-align: center;
+	margin-bottom: 10px;
+}
+
+.AgnityPropDiv {
+	margin: 5px 10px;
+}
+
+.AgnityPropDiv .AgnityRadioBtns {
+	margin: 10px;
+}
+
+.AgnityDialogDiv h3 {
+	text-align: center;
+}
+
+.AgnityDialogDiv {
+	font-family: 'ProximaNovaA-Regular',Arial,Helvetica,sans-serif;
+	font-size: 11pt;
+}
+
+.AgnityTableDiv {
+	white-space: nowrap;
+	overflow-y: auto;
+	margin-top: 6px;
+}
+
+.AgnityDialogTable {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.AgnityDialogTable td, .AgnityDialogTable th {
+	border: 1px solid #ddd;
+	padding: 8px;
+}
+
+.AgnityDialogTable tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+
+.AgnityDialogTable tr:hover {
+	background-color: #ddd;
+}
+
+.AgnityDialogTable th {
+	padding-top: 12px;
+	padding-bottom: 12px;
+	text-align: left;
+	background-color: #4CAF50;
+	color: white;
+}
+
+.AgnityTableDiv #addDBQueryParam {
+	margin-left: 90%;
+	margin-bottom: 10px;
+}
+
+#localVarTableDiv, #assignmentValueTableDiv {
+	height: 200px;
+}
+
+#outputListTableDiv, #playItemTableDiv {
+	height: 220px;
+}
+
+#smsVarTableDiv {
+	height: 80px;
+}
+
+#assignUnsetVarTableDiv, #soapInputTableDiv, #cdrParamTableDiv {
+	height: 230px;
+}
+
+#dbQuerySettingTableDiv {
+	height: 290px;
+}
+
+#playAndCollectTableDiv {
+	height: 190px;
+}
+
+#dbQueryTBody tr td:first-child {
+	width: 18%;
+}
+
+#dbQueryTBody tr td:nth-child(5) {
+	width: 10%;
+}
+
+.AgnityDeleteIcon {
+	width: 25px;
+	height: 25px;
+	background-image: url("../images/deleteIcon.png");
+	border: none;
+	background-color: transparent;
+	cursor: pointer;
+}
+
+.AgnityEditIcon {
+	width: 25px;
+	height: 25px;
+	background-image: url("../images/editIcon.png");
+	border: none;
+	background-color: transparent;
+	margin-right: 10px;
+	cursor: pointer;
+}
+
+.AgnityDeleteIcon:hover, .AgnityEditIcon:hover {
+	-ms-transform: scale(1.1);
+	-webkit-transform: scale(1.1);
+	transform: scale(1.1);
+}
+
+.AgnityIFrameDiv, .AgnityIFrame {
+	width: 100%;
+	height: 450px;
+	border-style: none;
+}
+
+.AgnityFieldRow>.AgnityHyperLink {
+	text-align: center;
+	display: block;
+	text-decoration: underline;
+	color: #069;
+	cursor: pointer;
+}
+
+.AgnityDialogHeadingDiv {
+	font-weight: bold;
+	font-size: 20px;
+	margin: 0px 0px 10px 0px;
+}
+
+.AgnityDialogErrorMsgDiv {
+	width: 100%;
+}
+
+.AgnityDialogErrorContentDiv {
+    height: 220px;
+    overflow: auto;
+}
+.AgnityDialogErrorMsgDiv img {
+    float: left;
+	margin-top: 12px;
+}
+
+.AgnityDialogErrorContentDiv p {
+	margin-left: 10px;
+}
+
+.AgnityDialogDetailPageDiv, .AgnityDialogListingPageDiv,
+	.AgnityDialogListingPageBodyDiv, .AgnityDialogListingPageHeadDiv {
+	width: 100%;
+	/* margin-top: 3%; */
+	overflow: auto;
+}
+
+.AgnityDialogDetailPageTwoColTable,
+	.AgnityDialogDetailPageSingleColTable, .AgnityDialogDetailPageFourColTable,
+	.AgnityDialogDetailPageThreeColTable, .AgnityDialogListingPageHeadTable,
+	.AgnityDialogListingPageBodyTable {
+	width: 100%;
+	table-layout: fixed;
+	border-spacing: 1px;
+}
+
+.AgnityDialogDetailPageSingleColTable td {
+	width: 100%;
+}
+
+.AgnityDialogDetailPageTwoColTable td {
+	width: 50%;
+}
+
+.AgnityDialogDetailPageThreeColTable td {
+	width: 33%;
+}
+
+.AgnityDialogDetailPageFourColTable td {
+	width: 25%;
+}
+
+.AgnityDialogDetailPageActionDiv {
+	text-align: center;
+	margin: 5px 0px;
+}
+
+.AgnityDialogListingPageBodyTable td, .AgnityDialogListingPageHeadTable th
+	{
+	padding: 6px;
+	overflow-x: hidden;
+}
+
+.AgnityDialogListingPageBodyTable tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+
+.AgniAgnityDialogListingPageTabletyDialogTable tr:hover {
+	background-color: #ddd;
+}
+
+.AgnityDialogListingPageBodyDiv {
+	height: 270px;
+	white-space: nowrap;
+	overflow-y: auto;
+}
+
+.AgnityDialogListingPageHeadTable th {
+	text-align: left;
+	background-color: #85ba49;
+	color: white;
+	font-weight: normal;
+}
+
+.AgnityDialogActionDiv {
+	text-align: center;
+	margin-top: 10px;
+}
+
+.AgnityDialogDiv .AgnityFieldRow {
+	margin: 0px;
+}
+
+.AgnityDialogActionButton, .AgnityDialogDetailPageActionButton {
+	margin: 0px 10px;
+}
+
+.AgnityDialogListingPageTableEntryButton {
+	margin: 2px;
+	float: left;
+	opacity: 0.5;
+}
+
+.AgnityDialogListingPageTableEntryButton:hover {
+	opacity: 1;
+}
+
+.AgnityDialogListingPageTableEntryRow {
+	opacity: 0.75;
+	transition: opacity 1s ease, font-size 1s ease;
+	white-space: normal;
+	word-wrap: break-word;
+}
+
+.AgnityDialogListingPageTableEntryRow:hover {
+	opacity: 1;
+	font-size: 15px;
+}
+
+#EdgeTextOptionsPropertyPanel .AgnityFieldRow {
+	width: 100%;
+	margin: 10px 0px;
+	text-align: left;
+}
+
+#AgnityOutlineMode {
+	width: 100%;
+	height: 150px;
+}
+
+.AgnityOutlineSection {
+	width: 100%;
+	height: 100%;
+}
+
+.AgnityOutlineSection label {
+	border-width: 0px;
+	border-style: solid;
+	border-color: rgb(192, 192, 192);
+	background-color: #495356;
+	background-image: url("../images/Agnity/navigator_block_icon.png");
+	background-position: 5px;
+	background-repeat: no-repeat;
+	text-align: left;
+	color: #fff;
+	font-size: 12px;
+	font-weight: bold;
+	display: inline-block;
+	padding: 8px 0px 0px 30px;
+	height: 20px;
+	width: 100%;
+	cursor: default;
+}
+
+body.AgnityForest {
+	margin: 0px 0px 0px 0px;
+}
+
+.AgnityTreeTabDiv div {
+	border-width: 1px;
+	border-style: solid;
+	border-color: rgb(195, 195, 195);
+	border-image: initial;
+	font-weight: bold;
+	height: 30px;
+	line-height: 30px;
+	font-size: 12px;
+	border-radius: 10px 10px 0px 0px;
+	display: inline-block;
+	text-align: center;
+	white-space: nowrap;
+	width: 10%;
+	background-color: rgb(225, 225, 225);
+}
+
+.AgnityTreeTabDiv div.active {
+	background-color: #fdfdfd;
+}
+
+.AgnityIFrameHolder {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	flex: scroll;
+	border-width: 0px;
+}
+
+.AgnityTreesContentDiv {
+	display: flex;
+	flex-flow: column nowrap;
+}
+
+.geSprite-validate {
+	width: 21px;
+	height: 21px;
+	background-image: url("../images/Agnity/validate_icon.png");
+	background-repeat: no-repeat;
+	background-size: 21px 21px;
+}
+
+#AgnityVariableMgntBtn {
+	height: 30px;
+	width: 35px;
+}
+
+.geSprite-variablemanagement {
+	width: 35px;
+	height: 30px;
+	background-image: url("../images/Agnity/variableManagement.png");
+	background-repeat: no-repeat;
+	background-size: 35px 30px;
+}
+
+.AgnitySaveCancelPanel {
+	text-align: center;
+}
+
+.AgnityHelpHyperLink {
+	display: none;
+}
+
+.AgnityFormatPanelActionButtonClass, .AgnityFieldRowButtonClass, .AgnityFormatLayoutTabButton,
+.AgnityActionPanelHolder button, .AgnityDialogDetailPageActionButton, .AgnityDialogActionButton, 
+.AgnityFieldRowSearchButtonClass {
+	margin: 5px 7px;
+	padding: 5px 10px;
+	color: #fff;
+	border-width: 0px;
+	border-style: solid;
+	border-color: rgb(195, 195, 195);
+	border-image: initial;
+	text-align: center;
+	overflow: hidden;
+	display: inline-block;
+	line-height: 20px;
+	cursor: pointer;
+	transition: 0.3s;
+	font-size: 12px;
+	vertical-align: middle;
+	background-color: #85ba49;
+}
+
+.AgnityIndicatorButtonHolder {
+	width: 100%;
+	height: 10px;
+}
+
+.AgnityIndicatorButton {
+	width: 10px;
+	height: 10px;
+	margin-left: 75%;
+	background-image: url("../images/Agnity/indicator.png");
+	background-repeat: no-repeat;
+	background-size: 10px 10px;
+	transition: margin-left 0.5s linear;
+}
+
+.AgnityForestBodyContianer {
+	height: 100vh;
+	width: 100%;
+	margin: 0px;
+	box-sizing: border-box;
+	display: flex;
+	flex-flow: column nowrap;
+	background-color: #000;
+}
+
+.AgnityForestControlHolder {
+	flex: none;
+	background-color: #fff;
+}
+
+.AgnityDiagramIframeHolder {
+	flex: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
+	margin-top:2px;
+}
+
+.AgnityDiagramTabHolder {
+	float: left;
+}
+
+.AgnityActionPanelHolder, .AgnityApplicationTextHolder, .AgnityApplicationDropDownFieldHolder {
+	float: right;
+}
+
+.AgnityDiagramTab {
+	float: left;
+	border-radius: 10px 10px 0px 0px;
+	padding: 2px;
+	border-width: 0px;
+	border-style: solid;
+	border-color: rgb(195, 195, 195);
+	border-image: initial;
+	text-align: center;
+	font-weight: bold;
+	overflow: hidden;
+	display: inline-block;
+	cursor: default;
+	transition: 0.3s;
+	color: #fff;
+	font-size: 12px;
+	vertical-align: middle;
+	background-color: #495356;
+	margin-top: 10px;
+	height: 28px;
+}
+
+.AgnityDiagramTab div
+{
+	margin:7px 0px 7px 7px;
+	float:left;
+}
+
+.AgnityActiveTab {
+	background-color: #85ba49;	
+}
+
+.AgnityInactiveTab {
+	background-color: #495356;
+}
+
+.AgnityDiagramIFrame {
+	box-sizing: border-box;
+	width: 100%;
+	border-width: 0px;
+}
+
+.AgnityActiveIframe {
+	display: block;
+}
+
+.AgnityInactiveIframe {
+	display: none;
+}
+
+.AgnityActionPanelIcon
+{
+	width: 30px;
+	height: 30px;
+	background-repeat: no-repeat;
+	background-size: 30px 30px;	
+	cursor : pointer;
+	float:left;
+	margin:6px;	
+}
+
+.AgnityApplicationTextHolder
+{
+	width: auto;
+	height: 24px;
+	background-repeat: no-repeat;
+	float: left;
+	margin: 6px 0px 0px 6px; 
+	background-color: #85ba49;
+	color: #ffffff;
+	padding: 5px 0px 0px 10px;
+	border-radius: 10px 0px 0px 10px;
+}
+
+.AgnityApplicationDropdownFieldClass
+{
+	width: auto;
+	height: 28px;
+	background-repeat: no-repeat;
+	float: left;
+	margin: 6px 5px 0px 6px; 
+	background-color: #85ba49;
+	color: #ffffff;
+	padding: 0px 0px 0px 10px;
+	border-radius: 15px;
+}
+
+.AgnityCloseApplication
+{
+	background-image: url("../images/Agnity/cross.png");
+	background-repeat: no-repeat;
+	background-color: #85ba49;
+	float: left;
+	margin: 6px 6px 0px 0px;
+	color: #ffffff;
+	padding: 5px 5px 0px 0px;
+	border-radius: 0px 10px 10px 0px;
+	width: 23px;
+	height: 24px;
+	background-size : 18px 18px;
+	background-position: center;
+}
+
+.AgnitySearchFieldRow {
+	width: 30px;
+	height: 30px;
+	background-repeat: no-repeat;
+	background-size: 30px 30px;	
+	cursor : pointer;
+	margin:6px;
+}
+
+.AgnityNewTreeIcon {
+	background-image: url("../images/Agnity/new.png");
+}
+
+.AgnitySaveTreeIcon {
+	background-image: url("../images/Agnity/save.png");
+}
+
+.AgnityDebugIcon {
+	background-image: url("../images/Agnity/debug.png");
+}
+
+.AgnityHelpTreeIcon {
+	background-image: url("../images/Agnity/help.png");
+}
+
+.AgnityStartIcon {
+	background-image: url("../images/Agnity/start.png");
+}
+
+.AgnityFirstIcon {
+	background-image: url("../images/Agnity/first.png");
+}
+
+.AgnityNextIcon {
+	background-image: url("../images/Agnity/next.png");
+}
+
+.AgnityPrevIcon {
+	background-image: url("../images/Agnity/prev.png");
+}
+
+.AgnityLastIcon {
+	background-image: url("../images/Agnity/last.png");
+}
+
+.AgnityCloseIcon {
+	width: 30px;
+	height: 30px;
+	background-image: url("../images/Agnity/close.png");
+	background-repeat: no-repeat;
+	top: 3px;
+}
+
+.AgnitySaveAsTemplateIcon {
+	background-image: url("../images/Agnity/saveTemplate.png");
+}
+
+.AgnitySearchIcon {
+	background-image: url("../images/Agnity/search.png");
+}
+.AgnityEyeIcon {
+	background-image: url("../images/Agnity/eye.png");
+}
+.AgnityUserIcon {
+	background-image: url("../images/Agnity/user.png");
+}
+.AgnitySettingsIcon {
+	background-image: url("../images/Agnity/settings.png");
+}
+
+.AgnityNavigatorIcon {
+	background-image: url("../images/Agnity/navigator_icon.png");
+}
+
+.AgnityToggleHeaderIcon {
+	background-image: url("../images/Agnity/toggle_header_icon.png");
+}
+
+.AgnityToggleLeftPanelIcon {
+	background-image: url("../images/Agnity/toggle_leftPanel_icon.png");
+}
+
+.AgnityToggleRightPanelIcon {
+	background-image: url("../images/Agnity/toggle_rightPanel_icon.png");
+}
+
+.AgnityFullScreenIcon {
+	background-image: url("../images/Agnity/fullscreen_icon.png");
+}
+
+.AgnityFullScreenOutIcon {
+	background-image: url("../images/Agnity/Exitfullscreen.png");
+}
+
+button.AgnityIcon {
+	background-color : transparent;
+	cursor : pointer;
+	position: relative;
+}
+
+button.AgnityIcon:hover {
+	
+}
+
+.AgnityTopBorder
+{
+}
+
+.AgnityActionsSidebar {
+	width:100%;
+	border-bottom: 1px solid #283336;
+}
+
+.agnity-variableManagement {
+	margin : 10px;
+	width: 30px;
+	height: 30px;
+	background-image: url("../images/Agnity/variableManagement.png");
+	background-repeat: no-repeat;
+	background-size: 30px 30px;
+	cursor: pointer;
+	float: left;
+}
+
+.agnity-validate {
+	margin : 10px;
+	width: 30px;
+	height: 30px;
+	background-image: url("../images/Agnity/validate_icon.png");
+	background-repeat: no-repeat;
+	background-size: 30px 30px;
+	cursor: pointer;
+	float: left;
+}
+
+.agnity-closeToggleSidebar
+{
+	margin : 16px 8px 10px 5px;
+	width: 12px;
+	height: 17px;
+	background-image: url("../images/Agnity/left_arrow.png");
+	background-repeat: no-repeat;
+	cursor: pointer;
+	float: right;
+}
+
+.AgnityThumbHolder
+{
+	overflow: hidden;
+	padding: 0px;	
+}
+
+.AgnityThumbHolder:hover
+{
+	background-color: #fff;
+}
+
+.AgnityThumbItem
+{
+	width: 30px;
+	height: 30px;
+	background-size: 30px 30px;
+	margin: 5px;
+}
+
+.AgnitySidebarPalette
+{
+	float:left;
+	width:100%;
+	margin-bottom: 5px;
+}
+
+.AgnitySidebarPalette:first-child
+{
+	float:left;
+}
+
+
+.AgnitySidebarPaletteLabel
+{
+	float:left;
+}
+
+.AgnitySidebarPaletteImage, .AgnitySidebarPaletteRefresh
+{
+    margin: 18px 5px 0px 0px;
+    float:right;
+	background-repeat: no-repeat;
+}
+
+.AgnitySidebarPaletteRefresh
+{
+	background-image: url("../../../images/refresh.png");
+	width: 17px;
+	height: 17px;
+	background-size: 17px 17px;
+	margin: 14px 5px 0px 0px;
+}
+
+.AgnitySidebarPalette .AgnitySidebarPaletteImage
+{
+	background-image: url("../images/Agnity/left_arrow.png");
+	width: 12px;
+	height: 17px;
+	margin-right: 5px;
+}
+
+.AgnityExpandedPalette .AgnitySidebarPaletteImage
+{
+	background-image: url("../images/Agnity/down_arrow.png");
+	width: 19px;
+	height: 10px;
+	margin-right: 5px;
+}
+.eyeExpandIcon
+{
+	background-image: url("../images/Agnity/indicator.png");
+}
+
+.AgnityShrinkedPalette .AgnitySidebarPaletteImage
+{
+	background-image: url("../images/Agnity/left_arrow.png");
+}
+
+.AgnitySidebarPaletteLabel
+{
+    margin: 2px;
+    background-repeat: no-repeat;
+    padding: 10px 0px 0px 5px;
+    color: #d8d7d7; 
+	font-size: large;
+	height:33px;
+	background-size: 40px 40px;
+}
+
+.AgnitySidebarPaletteGroup
+{
+	float:left;
+	margin: 6px 0px 0px 8px;
+	padding-top: 6px;
+	color: #ffffff;
+	text-align: center;
+	width: 32px;
+	height: 24px;
+	background: #85ba49;
+	border-radius: 50%;
+}
+
+.AgnityFormatCancelButtonClass 
+{
+	background-color: #908b8b;
+}
+
+.AgnityActionPanelHolder> .AgnityShowIcon
+{
+	display : inline-block;
+}
+
+.AgnityActionPanelHolder> .AgnityHideIcon
+{
+	display : none;
+}
+
+.AgnityDisableIcon
+{
+	cursor: not-allowed;
+	pointer-events: none;
+	opacity: .2;
+}
+
+.AgnityCloseTab
+{
+	background-image: url("../images/Agnity/cross.png");
+	background-repeat: no-repeat;
+	width: 23px;
+	height: 20px;
+	float: left;
+	margin-top: 2px;
+	background-size : 18px 18px;
+}
+
+.AgnitySidebarPalette:hover, .AgnityCloseTab:hover, .AgnityCloseApplication:hover
+{
+	cursor: pointer;
+}
+
+button, select, input
+{
+	font-family: 'ProximaNovaA-Light',Arial,Helvetica,sans-serif;	
+	color: rgb(112, 112, 112);
+}
+
+.AgnitySidebarTooltip
+{
+	width: 64px;
+	height: 64px;
+	background-repeat: no-repeat;
+	background-size: 64px 64px;
+	margin: 20px 29px;
+}
+
+@font-face
+{
+	font-family: 'ProximaNovaA-Light';
+	src: url("../../../font/ProximaNovaA-Light.eot?#iefix") format("embedded-opentype"),
+	url("../../../font/ProximaNovaA-Light.woff") format("woff"),
+	url("../../../font/ProximaNovaA-Light.ttf") format("truetype"),
+	url("../../../font/ProximaNovaA-Light.otf") format("otf"),
+	url("../../../font/ProximaNovaA-Light.svg#ProximaNovaA-Light") format("svg"),
+	url("../../../font/ProximaNovaA-Light.woff2") format("woff2");
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face
+{
+	font-family: 'ProximaNovaA-Regular';
+	src: url("../../../font/ProximaNovaA-Regular.eot?#iefix") format("embedded-opentype"),
+	url("../../../font/ProximaNovaA-Regular.woff") format("woff"),
+	url("../../../font/ProximaNovaA-Regular.ttf") format("truetype"),
+	url("../../../font/ProximaNovaA-Regular.otf") format("otf"),
+	url("../../../font/ProximaNovaA-Regular.svg#ProximaNovaA-Regular") format("svg"),
+	url("../../../font/ProximaNovaA-Regular.woff2") format("woff2");
+	font-weight: normal;
+	font-style: normal;
+}
+
+.AgnityForestBodyContianer, .AgnityAppLauncherContainer
+{
+	font-family: 'ProximaNovaA-Light',Arial,Helvetica,sans-serif;	
+	color: rgb(112, 112, 112);
+}
+
+.AgnityFormatLayoutTabButton
+{
+	margin: 0px;
+}
+
+.formatTabContentHolder .geToolbarContainer
+{
+	border: none;
+	background: none;
+}
+
+.AgnityTreeDiagramTab, .AgnityTreeRootNode
+{
+	background-image: url(../images/AgnityNodes/sidebar/tree_node.png) !important;
+    background-size: 13px 13px;
+    background-repeat: no-repeat;
+    padding: 0 0 0 20px;
+}
+
+.AgnityComponentDiagramTab, .AgnityComponentRootNode
+{
+	background-image: url(../images/AgnityNodes/sidebar/function_block.png) !important;
+    background-size: 13px 13px;
+    background-repeat: no-repeat;
+    padding: 0 0 0 20px;
+}
+
+.AgnityDBDiagramTab
+{
+	background-image: url(../images/AgnityNodes/sidebar/db_call.png) !important;
+    background-size: 13px 13px;
+    background-repeat: no-repeat;
+    padding: 0 0 0 20px;
+}
+
+.AgnityProcessDiagramTab
+{
+	background-image: url(../images/AgnityNodes/sidebar/process_call.png) !important;
+    background-size: 13px 13px;
+    background-repeat: no-repeat;
+    padding: 0 0 0 20px;
+}
+
+.AgnityComponentRootNode, .AgnityTreeRootNode
+{
+	background-position: 5px 5px !important;	
+}
+
+.AgnityHide
+{
+	display:none;
+}
+
+.AgnityTreeStructureDataTree 
+{
+	color : #d8d7d7;
+	overflow: hidden;
+}
+
+a[data-agnitycurrentblock="1"]
+{
+	background : #8d999c;
+}
+
+.geSprite-deactivate, .geSprite-applicationInfo, .geSprite-stop, .geSprite-start, .geSprite-undeploy, 
+.geSprite-setRoutingRules
+{
+	background-position : center;
+	background-size : 21px 21px;
+}
+
+.geSprite-active
+{
+	background-image : url(../../../images/activate.png);
+	background-position : center;
+}
+
+.geSprite-deactivate
+{
+	background-image : url(../../../images/deactivate.png);
+}
+
+.geSprite-applicationInfo
+{
+	background-image : url(../../../images/info.png);
+}
+
+.geSprite-stop
+{
+	background-image : url(../../../images/stop.png);
+}
+
+.geSprite-start
+{
+	background-image : url(../../../images/start-icon.png);
+}
+
+.geSprite-undeploy
+{
+	background-image : url(../../../images/undeploy.png);
+}
+
+.geSprite-setRoutingRules
+{
+	background-image : url(../../../images/routericon.png);
+}
+
+.AgnityTextInfo
+{
+	white-space : pre-line;
+}
+
+select:disabled
+{
+	opacity : 0.5;
+	cursor: not-allowed;
+}
+
+textarea.AgnityTextFieldClass
+{
+	overflow : auto;
+	resize : none;
+	width :683px;
+	height :440px;
+}
+
+.titleseparator
+{
+	float: left;
+    width: 1px;
+    height: 43px;
+    background: #e5e5e5;
+    margin-left: 6px;
+    margin-right: 6px;
+    margin-top: -2px;
+}
+
+.applicationhelperwrapper
+{
+	float:left;
+	display:inline-block;
+}
+
+.panelDropdown
+{
+	width: 45px;
+	border:1px solid #e7e7e7 !important;
+	padding: 0px !important;
+	position: relative !important;
+	left: -8px;
+	top: 30px;
+}
+
+.panelDropdown > table
+{
+	background-color: white;
+}
+
+.userDetailsPopup
+{
+	 width: 170px;
+	 height: 90px;
+     top: 40px;
+   	 right: 200px;
+   	 position: relative;
+}
+
+#userlogoutPopup > .AgnityDialogDiv > .AgnityDialogActionDiv > .AgnityDialogActionButton
+{
+	transition: none;
+}
+
+#userlogoutPopup > .AgnityDialogDiv
+{
+	margin: -25px;
+	font-size: 12pt !important;
+}
+
+#userlogoutPopup > .AgnityDialogDiv > .AgnityDialogActionDiv
+{
+	margin: auto;
+}
+
+.AgnityActionPanelExpandIcon
+{
+	width: 10px;
+    height: 10px;
+    background-repeat: no-repeat;
+    background-size: 10px 6px;
+    cursor: pointer;
+    float: left;
+    margin: 20px 6px 0px -5px;
+}
+
+.AgnityActionPanelExpandIcon:hover
+{
+	filter: grayscale(1);
+}
+
+.UserTextInfo
+{
+    margin: 8px 0px 12px 0px;
+}
+
+.UserTextInfoIcon
+{
+	position:relative;
+	width:60px;
+	height:60px;
+	margin: auto;
+	background-size: 60px 60px;
+	background-repeat: no-repeat;
+	background-image: url("../images/Agnity/user.png");
+}
+
+.geSprite-debug {
+    background-image: url(../images/Agnity/debug.png);
+    background-position : center;
+	background-size : 21px 21px;
+	opacity: 1 !important;
+	filter: grayscale(1);
+}
+.geSprite-lock {
+	background-image: url(../../../images/locked.png);
+    background-position : center;
+	background-size : 17px 17px;
+	opacity: 1 !important;
+}
+.geSprite-unlock {
+	background-image: url(../../../images/unlock.svg);
+    background-position : center;
+	background-size : 16px 16px;
+}
+
+.geSprite-enableDebug {
+	background-image: url(../images/AgnityNodes/record.png);
+	background-size : 15px 15px;
+	opacity:1 !important;
+}
+
+.geSprite-disableDebug {
+	background-image: url(../images/AgnityNodes/record1.png);
+	background-size : 15px 15px;
+	opacity:1 !important;
+	filter: invert(0.3);
+}
+
+.geSprite-disableDebugBtn 
+{
+	background-image: url(../images/Agnity/disabledebug.png);
+    background-position : center;
+	background-size : 21px 21px;
+	opacity: 1 !important;
+}
+
+.geSprite-enableDebugBtn
+{
+	background-image: url(../images/Agnity/enabledebug.png);
+    background-position : center;
+	background-size : 21px 21px;
+	opacity: 1 !important;
+}
+
+
+.debug-custom-fields
+{
+	margin-top:10px;
+}
+
+.debug-custom-fields .AgnityFieldRowLabelClass
+{
+	text-align:left;
+}
+
+.debug-custom-fields .AgnityFieldRowLabelHolder
+{
+	width:auto;
+}
+
+.geSprite-lockcomponent
+{
+	background: url(../../../images/lock.svg) no-repeat;
+	background-size: 16px;
+    background-position: top;
+    width: 21px;
+    height: 21px;
+}
+	
+.geSprite-unlockcomponent
+{
+	background: url(../../../images/unlock.svg) no-repeat;
+	background-size: 16px;
+    background-position: top;
+    width: 21px;
+    height: 21px;
+}
+
+.lock-status-locked
+{
+	background: url(../../../images/lock_white.svg) no-repeat;
+	background-size: 13px;
+    background-position: center;
+    width: 15px;
+    height: 12px;
+    top: 10px;
+    left: 3px;
+    position: relative;
+}
+
+.lock-status-locked-dropdown-wrapper
+{
+	overflow: hidden;
+	flex: 1;
+	overflow-wrap: break-word;
+}
+.lock-status-locked-dropdown
+{
+	background: url(../../../images/lock_white.svg) no-repeat;
+	background-size: 13px;
+    background-position: center;
+    width: 15px;
+    height: 15px;
+    float: right;
+}
+
+.lock-status-notlocked
+{
+	background: url(../../../images/unlock_white.svg) no-repeat;
+	background-size: 16px;
+    background-position: center;
+  	 width: 55%;
+    height: 55%;
+    top: 6px;
+    left: 7px;
+    position: relative;
+}
+
+.user-icon
+{
+	background: url(../../../images/user_white.svg) no-repeat;
+	background-size: 12px;
+    background-position: center;
+    width: 15px;
+    height: 12px;
+    top: 10px;
+    left: 0px;
+    position: relative;
+}
+
+.disabled-icon
+{
+	background: url(../../../images/disabled_white.svg) no-repeat;
+	background-size: 13px;
+    background-position: center;
+    width: 15px;
+    height: 13px;
+    top: 10px;
+    left: 0px;
+    position: relative;
+}
+
+.lock-status-floating-icon
+{
+	display:flex;
+	border-radius:50%;
+	cursor:pointer;
+}
+
+.grid-icons
+{
+	display: flex;
+	flex-direction: row-reverse;
+	margin-bottom:5px;
+	margin-right:5px;
+}
+
+.refresh-icon
+{
+	background: url(../../../images/refresh.svg) no-repeat;
+	background-size: 21px;
+    width: 27px;
+    height: 27px;
+    cursor: pointer;
+    background-position: center;
+}
+
+.fileupload-icon
+{
+	background: url(../../../images/fileupload.svg) no-repeat;
+	background-size: 21px;
+    width: 27px;
+    height: 27px;
+    cursor: pointer;
+    background-position: center;
+}
+
+.select2-container--default .select2-selection--single
+{
+	    background-color: unset;
+		border: unset;
+}
+
+.select2-results__option--selected
+{
+	background-color: #8d999c !important;
+}
+
+.select2-container {
+	max-width: 250px;
+    height: 28px;
+    background-repeat: no-repeat;
+    float: left;
+    margin: 6px 5px 0px 6px;
+    background-color: #85ba49;
+    color: #ffffff;
+    padding: 0px 0px 0px 10px;
+    border-radius: 15px;
+}
+
+.select2-dropdown {
+    background-color: #85ba49;
+}
+
+
+.select2-container--default .select2-selection--single .select2-selection__rendered
+{
+	 color: unset;
+	 text-align: center;
+}
+
+.select2-container--default .select2-selection--single
+{
+	outline: unset;
+}
+.select2-container--default .select2-results__option .select2-results__option
+{
+	display: flex;
+}
+
+@keyframes rotate-animation 
+{
+	from
+  	{
+    	transform: rotate(0deg);
+  	}
+  	to
+  	{
+    	transform: rotate(359deg);
+  	}
+}
+
+
+.rotate
+{
+	animation: rotate-animation 2s infinite linear;
+}
+
+.refresh-icon.rotate
+{
+	cursor: default;
+}
+
+#settings-page{
+	position: fixed;
+    width: 100%;
+    height: 100%;
+    background: white;
+}
+
+.settings-page-disable{
+	display: none;
+}
+
+.AgnityBSMultiSelectBox
+{
+	padding: 2px 8px;
+}
+
+.casTheader {
+	background: #d2f7a8;
+	font-weight: bold;
+}
+
+.casManageTable > tr {
+	height: 35px;
+}
+
+.hoverCasTable:hover {
+	background: #f2f3f5;
+	transition: 0.3s;
+}

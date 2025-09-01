@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+
+<mxStylesheet>
+	<add as="defaultVertex">
+		<add as="shape" value="label" />
+		<add as="perimeter" value="rectanglePerimeter" />
+		<add as="fontFamily" value="ProximaNovaA-Light" />
+		<add as="shadow" value="1" />
+		<add as="strokeColor" value="none" />
+		<add as="fontColor" value="#666" />
+		<add as="fontSize" value="16" />
+		<add as="gradientDirection" value="south" />
+		<!-- <add as="resizable" value="0"/> -->
+		<!-- add as="aspect" value="fixed" / -->
+		<add as="fillColor" value="#EEEEEE" />
+		<add as="gradientColor" value="#AAAAAA" />
+
+		<add as="align" value="center" />
+		<add as="verticalAlign" value="middle" />
+		
+		<add as="spacing" value="2" />
+		<add as="spacingLeft" value="48" />
+		<add as="imageAlign" value="left" />
+		<add as="imageVerticalAlign" value="top" />
+		<add as="imageWidth" value="37" />
+		<add as="imageHeight" value="37" />
+		<add as="rounded" value="1" />
+		<add as="html" value="1" />
+		<add as="whiteSpace" value="wrap" />
+		<add as="opacity" value="80%" />
+	</add>
+	<add as="defaultEdge">
+		<add as="shape" value="connector" />
+		<add as="labelBackgroundColor" value="#ffffff" />
+		<add as="endArrow" value="classic" />
+		<add as="fontSize" value="11" />
+		<add as="fontFamily" value="Verdana" />
+		<add as="align" value="center" />
+		<add as="verticalAlign" value="middle" />
+		<add as="rounded" value="1" />
+		<add as="strokeColor" value="#7D7D7D" />
+		<add as="fontColor" value="#000000" />
+		<add as="strokeWidth" value="3" />
+		<add as="curved" value="1" />
+	</add>
+	<add as="text">
+		<add as="fillColor" value="none" />
+		<add as="gradientColor" value="none" />
+		<add as="strokeColor" value="none" />
+		<add as="align" value="left" />
+		<add as="verticalAlign" value="top" />
+	</add>
+
+	<add as="label">
+		<add as="spacing" value="2" />
+		<add as="spacingLeft" value="48" />
+		<add as="imageAlign" value="left" />
+		<add as="imageVerticalAlign" value="top" />
+		<add as="imageWidth" value="37" />
+		<add as="imageHeight" value="37" />
+		<add as="rounded" value="1" />
+	</add>
+	<add as="icon" extend="label">
+		<add as="align" value="center" />
+		<add as="imageAlign" value="center" />
+		<add as="verticalLabelPosition" value="bottom" />
+		<add as="verticalAlign" value="top" />
+		<add as="spacingTop" value="4" />
+		<add as="labelBackgroundColor" value="#ffffff" />
+		<add as="spacing" value="0" />
+		<add as="spacingLeft" value="0" />
+		<add as="spacingTop" value="6" />
+		<add as="fontStyle" value="0" />
+		<add as="imageWidth" value="48" />
+		<add as="imageHeight" value="48" />
+	</add>
+	<add as="swimlane">
+		<add as="shape" value="swimlane" />
+		<add as="fontSize" value="12" />
+		<add as="fontStyle" value="1" />
+		<add as="startSize" value="23" />
+	</add>
+	<add as="group">
+		<add as="verticalAlign" value="top" />
+		<add as="fillColor" value="none" />
+		<add as="strokeColor" value="none" />
+		<add as="gradientColor" value="none" />
+		<add as="pointerEvents" value="0" />
+	</add>
+	<add as="ellipse">
+		<add as="shape" value="ellipse" />
+		<add as="perimeter" value="ellipsePerimeter" />
+	</add>
+	<add as="rhombus">
+		<add as="shape" value="rhombus" />
+		<add as="perimeter" value="rhombusPerimeter" />
+	</add>
+	<add as="triangle">
+		<add as="shape" value="triangle" />
+		<add as="perimeter" value="trianglePerimeter" />
+	</add>
+	<add as="line">
+		<add as="shape" value="line" />
+		<add as="strokeWidth" value="4" />
+		<add as="labelBackgroundColor" value="#ffffff" />
+		<add as="verticalAlign" value="top" />
+		<add as="spacingTop" value="8" />
+	</add>
+	<add as="image">
+		<add as="shape" value="image" />
+		<add as="labelBackgroundColor" value="white" />
+		<add as="verticalAlign" value="top" />
+		<add as="verticalLabelPosition" value="bottom" />
+	</add>
+	<add as="roundImage" extend="image">
+		<add as="perimeter" value="ellipsePerimeter" />
+	</add>
+	<add as="rhombusImage" extend="image">
+		<add as="perimeter" value="rhombusPerimeter" />
+	</add>
+	<add as="arrow">
+		<add as="shape" value="arrow" />
+		<add as="edgeStyle" value="none" />
+		<add as="fillColor" value="#ffffff" />
+	</add>
+
+	<add as="start">
+		<add as="image" value="../themes/default/images/AgnityNodes/start.png" />
+	</add>
+	<add as="save_cdr">
+		<add as="image" value="../themes/default/images/AgnityNodes/save_cdr.png" />
+	</add>
+	<add as="interm_cdr">
+		<add as="image" value="../themes/default/images/AgnityNodes/intermcdr.png" />
+	</add>
+	<add as="assignment">
+		<add as="image" value="../themes/default/images/AgnityNodes/assignment.png" />
+	</add>
+	<add as="db_call">
+		<add as="image" value="../themes/default/images/AgnityNodes/db_call.png" />
+	</add>
+	<add as="condition">
+		<add as="image" value="../themes/default/images/AgnityNodes/condition.png" />
+	</add>
+	<add as="expression">
+		<add as="image" value="../themes/default/images/AgnityNodes/expression.png" />
+	</add>
+	<add as="connect">
+		<add as="image" value="../themes/default/images/AgnityNodes/connect.png" />
+	</add>
+	<add as="play_and_collect">
+		<add as="image" value="../themes/default/images/AgnityNodes/play_and_collect.png" />
+	</add>
+	<add as="play">
+		<add as="image" value="../themes/default/images/AgnityNodes/play.png" />
+	</add>
+	<add as="external_call">
+		<add as="image" value="../themes/default/images/AgnityNodes/external_call.png" />
+	</add>
+	<add as="switch">
+		<add as="image" value="../themes/default/images/AgnityNodes/switch.png" />
+	</add>
+	<add as="route_call">
+		<add as="image" value="../themes/default/images/AgnityNodes/route_call.png" />
+	</add>
+	<add as="terminate">
+		<add as="image" value="../themes/default/images/AgnityNodes/terminate.png" />
+	</add>
+	<add as="time_pattern">
+		<add as="image" value="../themes/default/images/AgnityNodes/time_pattern.png" />
+	</add>
+	<add as="origin_pattern">
+		<add as="image" value="../themes/default/images/AgnityNodes/origin_pattern.png" />
+	</add>
+	<add as="create_conference">
+		<add as="image" value="../themes/default/images/AgnityNodes/create_conference.png" />
+	</add>
+	<add as="join_conference">
+		<add as="image" value="../themes/default/images/AgnityNodes/join_conference.png" />
+	</add>
+	<add as="unjoin_conference">
+		<add as="image" value="../themes/default/images/AgnityNodes/unjoin_conference.png" />
+	</add>
+	<add as="destroy_conference">
+		<add as="image" value="../themes/default/images/AgnityNodes/destroy_conference.png" />
+	</add>
+	<add as="record">
+		<add as="image" value="../themes/default/images/AgnityNodes/record.png" />
+	</add>
+	<add as="stop_media">
+		<add as="image" value="../themes/default/images/AgnityNodes/stop_media.png" />
+	</add>
+	<add as="event_handler">
+		<add as="image" value="../themes/default/images/AgnityNodes/event_handler.png" />
+	</add>
+	<add as="create_timer">
+		<add as="image" value="../themes/default/images/AgnityNodes/create_timer.png" />
+	</add>
+	<add as="block_pattern">
+		<add as="image" value="../themes/default/images/AgnityNodes/block_pattern.png" />
+	</add>
+	<add as="dialed_pattern">
+		<add as="image" value="../themes/default/images/AgnityNodes/dialed_pattern.png" />
+	</add>
+	<add as="call_area_screening">
+		<add as="image" value="../themes/default/images/AgnityNodes/call_area_screening.png" />
+	</add>
+	<add as="account_code">
+		<add as="image" value="../themes/default/images/AgnityNodes/account_code.png" />
+	</add>
+	<add as="stop_timer">
+		<add as="image" value="../themes/default/images/AgnityNodes/stop_timer.png" />
+	</add>
+	<add as="call_hold">
+		<add as="image" value="../themes/default/images/AgnityNodes/call_hold.png" />
+	</add>
+	<add as="percentage">
+		<add as="image" value="../themes/default/images/AgnityNodes/percentage.png" />
+	</add>
+	<add as="dialout_call">
+		<add as="image" value="../themes/default/images/AgnityNodes/dialout_call.png" />
+	</add>
+	<add as="digit_pattern">
+		<add as="image" value="../themes/default/images/AgnityNodes/digit_pattern.png" />
+	</add>
+	<add as="process_call">
+		<add as="image" value="../themes/default/images/AgnityNodes/process_call.png" />
+	</add>
+	<add as="process_start">
+		<add as="image" value="../themes/default/images/AgnityNodes/process_start.png" />
+	</add>
+	<add as="return">
+		<add as="image" value="../themes/default/images/AgnityNodes/return.png" />
+	</add>
+	<add as="tree_node">
+		<add as="image" value="../themes/default/images/AgnityNodes/tree_node.png" />
+	</add>
+	<add as="function_block">
+		<add as="image" value="../themes/default/images/AgnityNodes/function_block.png" />
+	</add>
+	<add as="resync_call">
+		<add as="image" value="../themes/default/images/AgnityNodes/resync_call.png" />
+	</add>
+	<add as="sequence">
+		<add as="image" value="../themes/default/images/AgnityNodes/sequence.png" />
+	</add>
+	<add as="table">
+		<add as="image" value="../themes/default/images/AgnityNodes/table.png" />
+	</add>
+	<add as="view">
+		<add as="image" value="../themes/default/images/AgnityNodes/view.png" />
+	</add>
+	<add as="user_type">
+		<add as="image" value="../themes/default/images/AgnityNodes/user_type.png" />
+	</add>
+	<add as="send_alarm">
+		<add as="image" value="../themes/default/images/AgnityNodes/send_alarm.png" />
+	</add>
+	<add as="end_execution">
+		<add as="image" value="../themes/default/images/AgnityNodes/end_execution.png" />
+	</add>
+	<add as="send_email">
+		<add as="image" value="../themes/default/images/AgnityNodes/send_email.png" />
+	</add>
+	<add as="send_sms">
+		<add as="image" value="../themes/default/images/AgnityNodes/send_sms.png" />
+	</add>
+	<add as="routing_engine">
+		<add as="image" value="../themes/default/images/AgnityNodes/routing_engine.png" />
+	</add>
+	<add as="route_play">
+		<add as="image" value="../themes/default/images/AgnityNodes/route_play.png" />
+	</add>
+	<add as="route_play_collect">
+		<add as="image" value="../themes/default/images/AgnityNodes/route_play_collect.png" />
+	</add>
+	<add as="route">
+		<add as="image" value="../themes/default/images/AgnityNodes/route.png" />
+	</add>
+	<add as="apply_charge">
+		<add as="image" value="../themes/default/images/AgnityNodes/apply_charge.png" />
+	</add>
+	<add as="automatic_code_gapping">
+		<add as="image" value="../themes/default/images/AgnityNodes/automatic_code_gapping.png" />
+	</add>
+	<add as="trigger_rule">
+		<add as="image" value="../themes/default/images/AgnityNodes/trigger_rule.png" />
+	</add>
+	<add as="tui">
+		<add as="image" value="../themes/default/images/AgnityNodes/tui.png" />
+	</add>
+	<add as="enum">
+		<add as="image" value="../themes/default/images/AgnityNodes/enum.png" />
+	</add>
+	<add as="avp_reader">
+		<add as="image" value="../themes/default/images/AgnityNodes/avp_reader.png" />
+	</add>
+	<add as="avp_writer">
+		<add as="image" value="../themes/default/images/AgnityNodes/avp_writer.png" />
+	</add>
+	<add as="diameter_ccr">
+		<add as="image" value="../themes/default/images/AgnityNodes/diameter_ccr.png" />
+	</add>
+	<add as="diameter_cca">
+		<add as="image" value="../themes/default/images/AgnityNodes/diameter_cca.png" />
+	</add>
+	<add as="sip_header">
+		<add as="image" value="../themes/default/images/AgnityNodes/sip_header.png" />
+	</add>
+	<add as="smpp">
+		<add as="image" value="../themes/default/images/AgnityNodes/smpp.png" />
+	</add>
+	
+	<add as="checkpoint">
+		<add as="image" value="../themes/default/images/AgnityNodes/checkpoint.png" />
+	</add>
+	
+	<add as="echo data">
+		<add as="image" value="../themes/default/images/AgnityNodes/echo.png" />
+	</add>
+	<add as="ccb">
+		<add as="image" value="../themes/default/images/AgnityNodes/ccb.png" />
+	</add>
+	<add as="ati">
+		<add as="image" value="../themes/default/images/AgnityNodes/ati.png" />
+	</add>
+	<add as="udr">
+		<add as="image" value="../themes/default/images/AgnityNodes/udr.png" />
+	</add>
+	<add as="service_chaining">
+		<add as="image" value="../themes/default/images/AgnityNodes/service_chaining.png" />
+	</add>
+	<add as="force_call_cleanup">
+		<add as="image" value="../themes/default/images/AgnityNodes/force_call_cleanup.png" />
+	</add>
+	<add as="gdi">
+		<add as="image" value="../themes/default/images/AgnityNodes/gdi.png" />
+	</add>
+	<add as="disconnect_leg">
+		<add as="image" value="../themes/default/images/AgnityNodes/disconnect_leg.png" />
+	</add>
+	<add as="call_queuing">
+		<add as="image" value="../themes/sms/images/AgnityNodes/call_queuing.png" />
+	</add>
+	<add as="initiate_ss7_call">
+		<add as="image" value="../themes/sms/images/AgnityNodes/initiate_ss7_call.png" />
+	</add>
+    <add as="peg_count">
+        <add as="image" value="../themes/default/images/AgnityNodes/peg_count.png" />
+    </add>
+	<add as="httpra_count">
+        <add as="image" value="../themes/default/images/AgnityNodes/httpra_count.png" />
+    </add>
+	<add as="http_ra">
+        <add as="image" value="../themes/default/images/AgnityNodes/httpra_count.png" />
+    </add>
+	<add as="application_measurement_counter">
+		<add as="image" value="../themes/default/images/AgnityNodes/application_measurement_counter.png" />
+	</add>
+	<add as="playspeech">
+		<add as="image" value="../themes/default/images/AgnityNodes/playspeech.png" />
+	</add>
+	 
+	<add as="logging">
+		<add as="image" value="../themes/default/images/AgnityNodes/logging.png" />
+	</add>
+
+	<!-- <add as="playspeech">
+		<add as="image" value="../themes/default/images/AgnityNodes/httpra.png" />
+	</add> -->
+	</mxStylesheet>

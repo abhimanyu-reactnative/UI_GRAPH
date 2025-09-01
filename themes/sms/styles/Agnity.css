@@ -1,0 +1,201 @@
+@import url("../../default/styles/Agnity.css");
+
+.formatTabButtonHolder button, .StyleTabButtonHolder div {
+	color : #333;
+	background-color : #E6E6E6;
+}
+
+.formatTabButtonHolder button.active, .StyleTabButtonHolder div.active {
+	background-color : #336699;
+	color : #ffffff;
+}
+
+.AgnityDialogListingPageHeadTable th {
+	background-color : #336699;
+}
+
+.AgnityOutlineSection label {
+	background-color : #336699;
+	background-image : url("../images/Agnity/navigator_block_icon.png");
+}
+
+.AgnityFormatPanelActionButtonClass, .AgnityFieldRowButtonClass, .AgnityFormatLayoutTabButton, 
+.AgnityActionPanelHolder button, .AgnityDialogDetailPageActionButton, .AgnityDialogActionButton, 
+.AgnityFieldRowSearchButtonClass {
+	background-color : #336699;
+}
+
+.AgnityDiagramTab, .AgnityActiveTab {
+	background-color : #336699;
+}
+
+.AgnityInactiveTab {
+	background-color : #E6E6E6;
+	color : #333;
+}
+
+.AgnityNewTreeIcon {
+	background-image : url("../images/Agnity/new.png");
+}
+
+.AgnitySaveTreeIcon {
+	background-image : url("../images/Agnity/save.png");
+}
+
+.AgnityDebugIcon {
+	background-image : url("../images/Agnity/debug.png");
+}
+
+.AgnityStartIcon {
+	background-image : url("../images/Agnity/start.png");
+}
+
+.AgnityFirstIcon {
+	background-image : url("../images/Agnity/first.png");
+}
+
+.AgnityNextIcon {
+	background-image : url("../images/Agnity/next.png");
+}
+
+.AgnityPrevIcon {
+	background-image : url("../images/Agnity/prev.png");
+}
+
+.AgnityLastIcon {
+	background-image : url("../images/Agnity/last.png");
+}
+
+.AgnityCloseIcon {
+	background-image : url("../images/Agnity/close.png");
+}
+
+.AgnitySaveAsTemplateIcon {
+	background-image : url("../images/Agnity/saveTemplate.png");
+}
+
+.AgnitySearchIcon {
+	background-image : url("../images/Agnity/search.png");
+}
+
+.AgnityNavigatorIcon {
+	background-image : url("../images/Agnity/navigator_icon.png");
+}
+
+.AgnityToggleHeaderIcon {
+	background-image : url("../images/Agnity/toggle_header_icon.png");
+}
+
+.AgnityToggleLeftPanelIcon {
+	background-image : url("../images/Agnity/toggle_leftPanel_icon.png");
+}
+
+.AgnityToggleRightPanelIcon {
+	background-image : url("../images/Agnity/toggle_rightPanel_icon.png");
+}
+
+.AgnityFullScreenIcon {
+	background-image : url("../images/Agnity/fullscreen_icon.png");
+}
+
+.AgnitySidebarPaletteLabel {
+	color : #ffffff;
+}
+
+.AgnitySidebarPaletteGroup {
+	color : #333;
+	background : #E6E6E6;
+}
+
+.AgnityFormatHelpButtonClass, .AgnityFormatCancelButtonClass {
+	background-color : #908b8b;
+}
+
+.AgnityCloseTab {
+	background-image : url("../images/Agnity/cross.png");
+}
+
+.AgnityActiveTab> .AgnityCloseTab {
+	background-image : url("../../default/images/Agnity/cross.png");
+}
+
+.AgnityInactiveTab> .AgnityTreeDiagramTab {
+	background-image : url("../images/AgnityNodes/tree_node.png") !important;
+}
+
+.AgnityInactiveTab> .AgnityComponentDiagramTab {
+	background-image : url("../images/AgnityNodes/function_block.png") !important;
+}
+
+.AgnityInactiveTab> .AgnityDBDiagramTab {
+	background-image : url("../images/AgnityNodes/db_call.png") !important;
+}
+
+.AgnityInactiveTab> .AgnityProcessDiagramTab {
+	background-image : url("../images/AgnityNodes/process_call.png") !important;
+}
+
+.geEditor> .geSidebarContainer, .geEditor> .geSidebar {
+	background : #336699;
+}
+
+.geSidebar {
+	border-bottom-color : #336699;
+}
+.geSidebarContainer> div> .geSidebar {
+	background-color : #336699;
+}
+
+.AgnityApplicationDropdownFieldClass {
+	background-color : #336699;
+}
+.AgnityHelpTreeIcon {
+	background-image: url("../images/Agnity/help.png");
+}
+.AgnityEyeIcon {
+	background-image: url("../images/Agnity/eye.png");
+}
+.AgnityUserIcon {
+	background-image: url("../images/Agnity/user.png");
+}
+.AgnitySettingsIcon {
+	background-image: url("../images/Agnity/settings.png");
+}
+.UserTextInfoIcon
+{
+	background-image: url("../images/Agnity/user.png");
+}
+.eyeExpandIcon
+{
+	filter: grayscale(1);
+}
+.title
+{
+	color: #336699;
+}
+.top_navbar
+{
+	background: #336699;
+}
+.AgnityDialogHeadingDiv
+{
+	color: rgb(112,112,112);
+}
+.AgnityFullScreenOutIcon {
+	background-image: url("../images/Agnity/Exitfullscreen.png");
+}
+.select2-container {
+    background-color: #336699;
+}
+
+.select2-dropdown {
+    background-color: #336699;
+}
+.loginCard
+{
+	 background: #e6efff;
+}
+
+img.LoginLock {
+    content: url(../images/Agnity/loginIcon.png);
+}
