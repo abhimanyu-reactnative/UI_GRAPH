@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+
+<shapes>
+	<shape name="Function Block" w="150" h="45">
+	</shape>
+	<shape name="Tree Node" w="150" h="45">
+	</shape>
+
+	<shape name="Process Start" w="150" h="45">
+	</shape>
+	<shape name="Return" w="150" h="45">
+	</shape>
+	
+	<shape name="Sequence" w="150" h="45">
+	</shape>
+	<shape name="Table" w="150" h="45">
+	</shape>
+	<shape name="View" w="150" h="45">
+	</shape>
+	<shape name="User Type" w="150" h="45">
+	</shape>
+	
+	<shape name="Start" w="150" h="45">
+	</shape>
+	<shape name="Save CDR" w="150" h="45">
+	</shape>
+	<shape name="Interm CDR" w="150" h="45">
+	</shape>
+	<shape name="Assignment" w="150" h="45">
+	</shape>
+	<shape name="DB Call" w="150" h="45">
+	</shape>
+	<shape name="Condition" w="150" h="45">
+	</shape>
+	<shape name="Expression" w="150" h="45">
+	</shape>
+	<shape name="Connect" w="150" h="45">
+	</shape>
+	<shape name="Play and Collect" w="150" h="45">
+	</shape>
+	<shape name="Play" w="150" h="45">
+	</shape>
+	<shape name="External Call" w="150" h="45">
+	</shape>
+	<shape name="Switch" w="150" h="45">
+	</shape>
+	<shape name="Route Call" w="150" h="45">
+	</shape>
+	<shape name="Terminate" w="150" h="45">
+	</shape>
+	<shape name="Time Pattern" w="150" h="45">
+	</shape>
+	<shape name="Origin Pattern" w="150" h="45">
+	</shape>
+	<shape name="Create Conference" w="150" h="45">
+	</shape>
+	<shape name="Join Conference" w="150" h="45">
+	</shape>
+	<shape name="UnJoin Conference" w="150" h="45">
+	</shape>
+	<shape name="Destroy Conference" w="150" h="45">
+	</shape>
+	<shape name="Record" w="150" h="45">
+	</shape>
+	<shape name="Stop Media" w="150" h="45">
+	</shape>
+	<shape name="Event Handler" w="150" h="45">
+	</shape>
+	<shape name="Create Timer" w="150" h="45">
+	</shape>
+	<shape name="Account Code" w="150" h="45">
+	</shape>
+	<shape name="Block Pattern" w="150" h="45">
+	</shape>
+	<shape name="Call Area Screening" w="150" h="45">
+	</shape>
+	<shape name="Dialed Pattern" w="150" h="45">
+	</shape>
+	<shape name="Percentage" w="150" h="45">
+	</shape>
+	<shape name="Stop Timer" w="150" h="45">
+	</shape>
+	<shape name="Call Hold" w="150" h="45">
+	</shape>
+	<shape name="Digit Pattern" w="150" h="45">
+	</shape>
+	<shape name="Process Call" w="150" h="45">
+	</shape>
+	<shape name="Resync Call" w="150" h="45">
+	</shape>
+	<shape name="Dialout Call" w="150" h="45">
+	</shape>
+	<shape name="Send Alarm" w="150" h="45">
+	</shape>
+	<shape name="End Execution" w="150" h="45">
+	</shape>
+	<shape name="Send Email" w="150" h="45">
+	</shape>
+	<shape name="Send SMS" w="150" h="45">
+	</shape>
+	<shape name="Routing Engine" w="150" h="45">
+	</shape>
+	<shape name="Route Play" w="150" h="45">
+	</shape>
+	<shape name="Route Play Collect" w="150" h="45">
+	</shape>
+	<shape name="Route" w="150" h="45">
+	</shape>
+	<shape name="Apply Charge" w="150" h="45">
+	</shape>
+	<shape name="Automatic Code Gapping" w="150" h="45">
+	</shape>
+	<shape name="Trigger Rule" w="150" h="45">
+	</shape>
+	<shape name="Tui" w="150" h="45">
+	</shape>
+	<shape name="Enum" w="150" h="45">
+	</shape>
+	<shape name="Avp Reader" w="150" h="45">
+	</shape>
+	<shape name="Avp Writer" w="150" h="45">
+	</shape>
+	<shape name="Diameter Ccr" w="150" h="45">
+	</shape>
+	<shape name="Diameter Cca" w="150" h="45">
+	</shape>
+	<shape name="SIP Header" w="150" h="45">
+	</shape>
+	<shape name="SMPP" w="150" h="45">
+	</shape>
+	<shape name="checkpoint" w="150" h="45">
+	</shape>
+	<shape name="Echo Data" w="150" h="45">
+	</shape>
+	<shape name="CCB" w="150" h="45">
+	</shape>
+	<shape name="ATI" w="150" h="45">
+	</shape>
+	<shape name="UDR" w="150" h="45">
+	</shape>
+	<shape name="Service Chaining" w="150" h="45">
+	</shape>
+	<shape name="Force Call Cleanup" w="150" h="45">
+	</shape>
+	<shape name="GDI" w="150" h="45">
+	</shape>
+	<shape name="DISCONNECT LEG" w="150" h="45">
+	</shape>
+	<shape name="Call Queuing" w="150" h="45">
+	</shape>
+	<shape name="Initiate SS7 Call" w="150" h="45">
+	</shape>
+    <shape name="Peg Count" w="150" h="45">
+    </shape>
+	<shape name="Http Ra" w="150" h="45">
+    </shape>
+	
+	<shape name="Application Measurement Counter" w="150" h="45">
+	</shape>
+	<shape name="PlaySpeech" w="150" h="45">
+	</shape>
+	<shape name="DISCONNECT LEG" w="150" h="45">
+	</shape>
+	<shape name="Call Queuing" w="150" h="45">
+	</shape>
+	<shape name="Logging" w="150" h="45">
+	</shape>
+</shapes>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maxGraph Webpack App</title>
+    <style>
+        /* Basic styling for the body and graph container */
+        body {
+            font-family: 'Inter', sans-serif; /* Using Inter font */
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5; /* Light background */
+            margin: 0;
+            padding: 20px; /* Add some padding around the content */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+        #graphContainer {
+            border: 2px solid #cbd5e1; /* Slate-300 border */
+            background: #ffffff; /* White background */
+            overflow: hidden; /* Important for graph rendering */
+            cursor: default;
+            width: 100%; /* Fluid width */
+            max-width: 900px; /* Max width for larger screens */
+            height: 600px; /* Fixed height for the graph area */
+            border-radius: 0.75rem; /* Rounded corners (Tailwind 'rounded-xl') */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Shadow for depth */
+            /* Add margin-top if you have a title above it */
+            margin-top: 20px;
+        }
+        /* Ensure maxGraph elements are styled correctly */
+        .mx-cell {
+            outline: none; /* Remove default outline on selection */
+        }
+    </style>
+</head>
+<body>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 mt-4">maxGraph Diagram</h1>
+ 
+    <div id="graphContainer">
+        </div>
+<script src="dist/bundle.js">
+</script>
+    </body>
+</html>

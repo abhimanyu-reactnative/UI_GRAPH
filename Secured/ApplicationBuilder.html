@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="ISO-8859-1">
+	<title>Application Builder</title>
+
+
+	<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+
+	<script type="text/javascript" src="../ReferenceScript/react.development.js"></script>
+	<script type="text/javascript" src="../ReferenceScript/react-dom.development.js"></script>
+	<script type="text/babel" src="../js/ReactApp/Error.js"></script>
+	<script type="text/babel" src="../js/ReactApp/ManageCas.js"></script>
+	<script type="text/babel" src="../js/ReactApp.js"></script>
+
+
+	<script type="text/javascript" src="../js/Init.js"></script>
+	<script type="text/javascript" src="../mxClient.js"></script>
+	<script type="text/javascript" src="../ReferenceScript/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/Agnity/DataStructure.js"></script>
+	<script type="text/javascript" src="../js/Agnity/Validator.js"></script>
+	<script type="text/javascript" src="../js/Agnity/PanelUtils.js"></script>
+	<script type="text/javascript" src="../js/Agnity/ConfigUtil.js"></script>
+	<script type="text/javascript" src="../js/Agnity/Dialog.js"></script>
+	<script type="text/javascript" src="../js/Agnity/AgnityForest/AgnityForest.js"></script>
+	<script type="text/javascript" src="../js/Agnity/Integration.js"></script>
+	<script type="text/javascript" src="../js/Agnity/RequestInterceptor.js"></script>
+	<link rel="stylesheet" type="text/css" href="../styles/grapheditor.css">
+
+<!--	<script type="text/javascript" src="../ReferenceScript/babel.min.js"></script>-->
+<!--	<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>-->
+<!--	<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>-->
+
+
+
+	<link href="../ReferenceCss/select2.min.css" rel="stylesheet" />
+	<script src="../ReferenceScript/select2.min.js"></script>
+
+	<style>
+		.AgnityForestBodyContianer {
+			height: 100vh;
+			width: 100%;
+			margin: 0px;
+			box-sizing: border-box;
+			display: flex;
+			flex-flow: column nowrap;
+		}
+
+		.AgnityForestControlHolder {
+			flex: none;
+		}
+
+		.AgnityDiagramIframeHolder {
+			flex: auto;
+			overflow-y: auto;
+			overflow-x: hidden;
+			margin-top:2px;
+		}
+	</style>
+
+	<script type="text/javascript">
+
+		$(document).ready(function()
+		{
+			var status =  new AgnityCheckLoginStatus();
+			status.fetchData(function(response){
+				console.log(response);
+			});
+
+			Agnity.loadCss();
+
+			mxResources.loadDefaultBundle = false;
+			var bundle = mxResources.getDefaultBundle(RESOURCE_BASE, mxLanguage) ||
+					mxResources.getSpecialBundle(RESOURCE_BASE, mxLanguage);
+
+			mxUtils.getAll([bundle], function(xhr)
+			{
+				mxResources.parse(xhr[0].getText());
+
+				var agnityGlobalForestController = new AgnityForestController();
+				agnityGlobalForestController.init(document.getElementById('AgnityForestControlHolderId'), document.getElementById('AgnityDiagramIframeHolderId'));
+				agnityGlobalForestController.setupDefaultParams();
+
+				$(window).resize(function()
+				{
+					agnityGlobalForestController.setActiveTab(agnityGlobalForestController.activeTabId);
+				});
+
+				agnityGlobalForestController.openFirstTab();
+
+				setTimeout(function(){
+					agnityGlobalForestController.setActiveTab(agnityGlobalForestController.activeTabId);
+					//agnityGlobalForestController.sendMessageOnLoad();
+				}, 1000);
+
+			}, function()
+			{
+				document.body.innerHTML = '<center style="margin-top:10%;">Error loading resource files. Please check browser console.</center>';
+			});
+
+			if(Agnity.getLocalStorage('user').admin)
+			{
+				var settings = document.createElement("embed");
+				settings.setAttribute("type","text/html");
+				settings.setAttribute("loading","lazy");
+				settings.setAttribute("src","../Secured/Settings.html" + window.location.search);
+				settings.setAttribute("width","100%");
+				settings.setAttribute("height","100%");
+				var settingDiv = $("#settings-page")[0]
+				settingDiv.appendChild(settings);
+			}
+
+		});
+	</script>
+</head>
+
+<body class="AgnityForestBodyContianer">
+<div class="reactApp"></div>
+<div id="AgnityForestControlHolderId" class="AgnityForestControlHolder">
+
+
+
+</div>
+
+
+
+<div id="AgnityDiagramIframeHolderId" class="AgnityDiagramIframeHolder">
+</div>
+<div id="settings-page" class="settings-page-disable">
+</div>
+
+</body>
+</html>

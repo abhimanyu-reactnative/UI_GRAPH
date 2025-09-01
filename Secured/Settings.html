@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<meta name="viewport" content="user-scalable=yes, width=device-width, height=device-height, initial-scale=1.0">
+<title>Application Builder Settings</title>
+<link rel="stylesheet" type="text/css" href="../styles/helpview.css">
+<link rel="stylesheet" type="text/css" href="../styles/settings.css">
+<link rel="stylesheet" type="text/css" href="../styles/grapheditor.css">
+
+<script type="text/javascript" src="../js/Init.js"></script>
+<script type="text/javascript" src="../mxClient.js"></script>
+<script type="text/javascript" src="../ReferenceScript/jquery.min.js"></script>
+<script type="text/javascript" src="../js/Agnity/DataStructure.js"></script>
+<script type="text/javascript" src="../js/Agnity/ConfigUtil.js"></script>
+<script type="text/javascript" src="../js/Agnity/PanelUtils.js"></script>
+<script type="text/javascript" src="../js/Agnity/Integration.js"></script>
+<script type="text/javascript" src="../js/Agnity/Settings.js"></script>
+<script type="text/javascript" src="../js/Agnity/Validator.js"></script>
+<script type="text/javascript" src="../js/Agnity/Dialog.js"></script>
+<script type="text/javascript" src="../js/Agnity/Actions.js"></script>
+<script type="text/javascript" src="../ReferenceScript/popper.min.js"></script>
+<script type="text/javascript" src="../js/Actions.js"></script>
+<script type="text/javascript" src="../js/Agnity/RequestInterceptor.js"></script>
+<script type="text/javascript" src="../js/Agnity/UserSettings.js"></script>
+<script type="text/javascript" src="../js/Agnity/DomainSettings.js"></script>
+<script type="text/javascript" src="../js/Agnity/DebugSettings.js"></script>
+<script type="text/javascript" src="../js/Agnity/AuditLogSettings.js"></script>
+<script type="text/javascript" src="../js/Agnity/PasswordPolicy.js"></script>
+
+<script>
+$(document).ready(function()
+{
+	var status =  new AgnityCheckLoginStatus();
+	status.fetchData(function(response){
+		console.log(response);
+
+	});
+	Agnity.loadCss();
+	mxResources.loadDefaultBundle = false;
+	var bundle = mxResources.getDefaultBundle(SETTINGS_RESOURCE, mxLanguage) ||
+	 mxResources.getSpecialBundle(LOGIN_RESOURCE, mxLanguage);
+
+	var loginBundle = mxResources.getDefaultBundle(LOGIN_RESOURCE, mxLanguage);
+	mxUtils.getAll([bundle,loginBundle], function(xhr)
+	{
+		mxResources.parse(xhr[0].getText());
+		mxResources.parse(xhr[1].getText());
+		doInitSettings();
+	}, function()
+	{
+		document.body.innerHTML = '<center style="margin-top:10%;">Error loading resource files. Please check browser console.</center>';
+	});
+
+	
+});
+</script>
+</head>
+<body onload="afterLoad()">
+<div class="wrapper">
+  <nav class="top_navbar">
+  
+     <div style="display:flex">
+	   	<div class="settingBackButton">
+			<div onclick="doBack()" class="AgnityActionPanelIcon AgnityPrevIcon" style="filter: drop-shadow(1px 1px 2px black);"></div>
+	   	</div>
+        <span class="helpTitle">Application Builder Settings</span>
+   </div>
+</nav>
+  <div class="main_container"> 
+    <div id="sidebar" class="geSidebarContainer">
+     </div>
+     <div class="content" id="content">
+     	
+     </div>
+     <div class="content" id="debugger_files_content"  style="display:none">
+     
+     </div>
+  </div>
+  
+  
+</div>
+<script>
+function afterLoad()
+{
+	agnityGlobalData.tabId = "Settings";
+
+	}
+function doBack()
+{
+    agnityGlobalData.sendMessageToParent('toggele-settings');
+
+	}
+</script>
+
+
+<script type="text/javascript" src="../ReferenceScript/BsMultiSelect.min.js"></script>
+</body>
+</html>
